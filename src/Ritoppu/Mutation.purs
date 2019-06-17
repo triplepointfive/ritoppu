@@ -1,5 +1,5 @@
 module Ritoppu.Mutation
-  ( module Ritoppu.Mutation.Skill
+  ( module Ritoppu.Mutation.Point
   ) where
 
-import Ritoppu.Mutation.Skill (practice)
+import Ritoppu.Mutation.Point (moveTo)
