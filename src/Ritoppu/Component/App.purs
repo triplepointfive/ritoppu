@@ -102,4 +102,8 @@ keyToAction = case _ of
   "j" -> move S
   "k" -> move N
   "l" -> move E
+  "ArrowLeft" -> move W
+  "ArrowDown" -> move S
+  "ArrowUp" -> move N
+  "ArrowRight" -> move E
   _ -> inactive
