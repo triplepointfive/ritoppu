@@ -5,11 +5,14 @@ module Ritoppu.Action.Move
 import Prelude
 
 import Ritoppu.Action (ActionResult, inactive)
-import Ritoppu.Model (Direction, Game)
+import Ritoppu.Model (Direction, Game, availableToMoveTo)
 import Ritoppu.Mutation (moveTo)
 
 move :: Direction -> Game -> ActionResult Game
-move dir game = inactive $ game { stage { player { pos = dest } } }
+move dir game = case unit of
+  _ | availableToMoveTo game.stage dest
+      -> inactive $ game { stage { player { pos = dest } } }
+  _ -> inactive game
 
   where
 

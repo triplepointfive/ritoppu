@@ -9,6 +9,5 @@ module Ritoppu.Model
 import Ritoppu.Model.Direction (Direction(..), directionDelta)
 import Ritoppu.Model.Game (Game)
 import Ritoppu.Model.Point (Point)
-import Ritoppu.Model.Stage (Stage, creatureAt, playerAt, tileAt)
-import Ritoppu.Model.Game (Game)
+import Ritoppu.Model.Stage (Stage, creatureAt, playerAt, tileAt, availableToMoveTo)
 import Ritoppu.Model.Tile (Tile(..))
