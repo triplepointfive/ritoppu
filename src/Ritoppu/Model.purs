@@ -1,7 +1,6 @@
 module Ritoppu.Model
   ( module Ritoppu.Model.Direction
   , module Ritoppu.Model.Game
-  , module Ritoppu.Model.Point
   , module Ritoppu.Model.Stage
   , module Ritoppu.Model.Point
   ) where

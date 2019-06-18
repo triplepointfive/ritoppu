@@ -1,13 +1,14 @@
 module Ritoppu.Display
   ( DisplayTile(..)
   , build
+  , displayTileToText
   ) where
 
 import Prelude
 
 import Data.Array (range)
 import Data.Maybe (Maybe(..))
-import Data.String.CodeUnits (toCharArray)
+import Data.String.CodeUnits (singleton)
 import Ritoppu.Model (Stage, Point, playerAt, tileAt)
 import Ritoppu.Model.Tile (Tile(..)) as T
 
@@ -34,3 +35,10 @@ stageTileToDisplayTile :: T.Tile -> DisplayTile
 stageTileToDisplayTile = case _ of
   T.Floor -> Floor
   T.Wall -> Wall
+
+displayTileToText :: DisplayTile -> String
+displayTileToText = case _ of
+  Wall -> "#"
+  Floor -> "."
+  Creature ch _ -> singleton ch
+  Empty -> " "
