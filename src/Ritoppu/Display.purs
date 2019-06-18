@@ -1,24 +1,23 @@
 module Ritoppu.Display
   ( DisplayTile(..)
   , build
-  , displayTileToText
   ) where
 
-import Prelude
+import Prelude hiding (div)
 
 import Data.Array (range)
 import Data.Maybe (Maybe(..))
-import Data.String.CodeUnits (singleton)
-import Ritoppu.Model (Stage, Point, playerAt, tileAt)
-import Ritoppu.Model.Tile (Tile(..)) as T
+import Data.Newtype (wrap)
+import Halogen.HTML as HH
+import Halogen.HTML.Properties as HP
+import Ritoppu.Model (Stage, Point, Tile(..), playerAt, tileAt)
 
-data DisplayTile
-  = Creature Char DisplayTile
-  | Wall
-  | Floor
-  | Empty
+type DisplayTile = forall p i. HH.HTML p i
 
-build :: Stage -> Array (Array DisplayTile)
+div :: forall p i. String -> Array (HH.HTML p i) -> HH.HTML p i
+div classes = HH.div [ HP.class_ (wrap classes) ]
+
+build :: forall p i. Stage -> Array (Array (HH.HTML p i))
 build stage = map
     (\y -> map
         (\x -> toDisplayTile stage { x, y })
@@ -27,18 +26,12 @@ build stage = map
 
 toDisplayTile :: Stage -> Point -> DisplayTile
 toDisplayTile stage pos = case tileAt stage pos of
-  Just tile | playerAt stage pos -> Creature '@' (stageTileToDisplayTile tile)
-  Just tile -> stageTileToDisplayTile tile
-  Nothing -> Empty
+  Just tile | playerAt stage pos
+      -> stageTileToDisplayTile tile [ div "creature -player" [] ]
+  Just tile -> stageTileToDisplayTile tile []
+  Nothing -> div "tile -nothing" []
 
-stageTileToDisplayTile :: T.Tile -> DisplayTile
+stageTileToDisplayTile :: forall p i. Tile -> Array (HH.HTML p i) -> HH.HTML p i
 stageTileToDisplayTile = case _ of
-  T.Floor -> Floor
-  T.Wall -> Wall
-
-displayTileToText :: DisplayTile -> String
-displayTileToText = case _ of
-  Wall -> "#"
-  Floor -> "."
-  Creature ch _ -> singleton ch
-  Empty -> " "
+  Floor -> div "tile -floor"
+  Wall -> div "tile -wall"

@@ -1,0 +1,3 @@
+[submodule "images/rltiles"]
+	path = images/rltiles
+	url = git@github.com:statico/rltiles.git

@@ -14,7 +14,7 @@ import Halogen.HTML as HH
 import Halogen.HTML.Properties as HP
 import Ritoppu.Action (ActionResult, inactive)
 import Ritoppu.Action.Move (move)
-import Ritoppu.Display (build, displayTileToText)
+import Ritoppu.Display (build)
 import Ritoppu.Model (Direction(..), Game, Stage)
 import Ritoppu.Model.Tile (Tile(..)) as T
 import Web.UIEvent.KeyboardEvent (KeyboardEvent)
@@ -79,7 +79,7 @@ render :: forall p i. State -> HH.HTML p i
 render game = div "app-container"
   [ div "level-map" $
       map
-          (div "row" <<< map (HH.text <<< displayTileToText))
+          (div "row")
           (build game.stage)
   ]
 

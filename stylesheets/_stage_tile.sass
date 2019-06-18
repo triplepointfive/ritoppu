@@ -1,0 +1,30 @@
+$cell-size: 32px
+$sprite-tile-size: 32px
+$sprite-x: 30
+$sprite-y: 55
+$sprite-ratio: $cell-size / $sprite-tile-size * $sprite-tile-size
+
+@mixin tile-image
+  width: $cell-size
+  height: $cell-size
+  background: url(../images/rltiles/rltiles-2d.png)
+  background-size: $sprite-x * $sprite-ratio $sprite-y * $sprite-ratio
+
+@mixin tile($x, $y)
+  background-position: $sprite-ratio * -1 * $x $sprite-ratio * -1 * $y
+
+.tile
+  @include tile-image
+  position: relative
+  display: inline-block
+
+  &.-wall
+    @include tile(7, 45)
+  &.-floor
+    @include tile(28, 45)
+
+  > .creature
+    position: absolute
+    @include tile-image
+  > .creature.-player
+    @include tile(1, 18)
