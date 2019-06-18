@@ -12,11 +12,13 @@ import Effect.Aff (Aff)
 import Halogen as H
 import Halogen.HTML as HH
 import Halogen.HTML.Properties as HP
+import Ritoppu.Action (ActionResult, inactive)
 import Ritoppu.Action.Move (move)
 import Ritoppu.Display (build, displayTileToText)
 import Ritoppu.Model (Direction(..), Game, Stage)
 import Ritoppu.Model.Tile (Tile(..)) as T
 import Web.UIEvent.KeyboardEvent (KeyboardEvent)
+import Web.UIEvent.KeyboardEvent as KE
 
 data Action = SetRadius Int
 
@@ -87,5 +89,17 @@ handleAction _ = do
 
 handleQuery :: forall a. Query a -> H.HalogenM State Action () Message Aff (Maybe a)
 handleQuery (KeyboardDown ev next) = do
-  H.modify_ (\game -> (move E game).result)
+  H.modify_ (\game -> ((keyToAction (KE.key ev)) game).result)
   pure (Just next)
+
+keyToAction :: String -> (Game -> ActionResult Game)
+keyToAction = case _ of
+  "y" -> move NW
+  "u" -> move NE
+  "b" -> move SW
+  "n" -> move SE
+  "h" -> move W
+  "j" -> move S
+  "k" -> move N
+  "l" -> move E
+  _ -> inactive
