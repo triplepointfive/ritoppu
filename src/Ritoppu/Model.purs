@@ -3,11 +3,10 @@ module Ritoppu.Model
   , module Ritoppu.Model.Game
   , module Ritoppu.Model.Point
   , module Ritoppu.Model.Stage
-  , module Ritoppu.Model.Tile
+  , module Ritoppu.Model.Point
   ) where
 
 import Ritoppu.Model.Direction (Direction(..), directionDelta)
-import Ritoppu.Model.Game (Game(..))
+import Ritoppu.Model.Game (Game)
 import Ritoppu.Model.Point (Point)
 import Ritoppu.Model.Stage (Stage, creatureAt, playerAt, tileAt)
-import Ritoppu.Model.Tile (Tile(..))
