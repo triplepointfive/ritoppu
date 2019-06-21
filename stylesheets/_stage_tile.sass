@@ -22,6 +22,8 @@ $sprite-ratio: $cell-size / $sprite-tile-size * $sprite-tile-size
     @include tile(7, 45)
   &.-floor
     @include tile(28, 45)
+  &.-nothing
+    @include tile(28, 44)
 
   > .creature
     position: absolute

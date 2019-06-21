@@ -17,6 +17,7 @@ import Ritoppu.Action.Move (move)
 import Ritoppu.Display (build)
 import Ritoppu.Model (Direction(..), Game, Stage)
 import Ritoppu.Model.Tile (Tile(..)) as T
+import Ritoppu.Generator (generate)
 import Web.UIEvent.KeyboardEvent (KeyboardEvent)
 import Web.UIEvent.KeyboardEvent as KE
 
@@ -44,35 +45,15 @@ component =
     }
 
 initialState :: State
-initialState = { stage: stage }
+initialState = { stage: generate 15 stage }
 
   where
 
   stage :: Stage
   stage =
-    { player: { pos: { x: 1, y: 1 } }
-    , tiles: Map.fromFoldable
-        [ Tuple { x: 0, y: 0 } T.Wall
-        , Tuple { x: 0, y: 1 } T.Wall
-        , Tuple { x: 0, y: 2 } T.Wall
-        , Tuple { x: 0, y: 3 } T.Wall
-
-        , Tuple { x: 1, y: 0 } T.Wall
-        , Tuple { x: 1, y: 1 } T.Floor
-        , Tuple { x: 1, y: 2 } T.Floor
-        , Tuple { x: 1, y: 3 } T.Wall
-
-        , Tuple { x: 2, y: 0 } T.Wall
-        , Tuple { x: 2, y: 1 } T.Floor
-        , Tuple { x: 2, y: 2 } T.Floor
-        , Tuple { x: 2, y: 3 } T.Wall
-
-        , Tuple { x: 3, y: 0 } T.Wall
-        , Tuple { x: 3, y: 1 } T.Wall
-        , Tuple { x: 3, y: 2 } T.Wall
-        , Tuple { x: 3, y: 3 } T.Wall
-        ]
-    , size: { x: 4, y: 4 }
+    { player: { pos: { x: 15, y: 15 } }
+    , tiles: Map.empty
+    , size: { x: 32, y: 32 }
     }
 
 render :: forall p i. State -> HH.HTML p i
