@@ -61,7 +61,7 @@ handleAction :: forall o. Action -> H.HalogenM State Action () o Aff Unit
 handleAction = case _ of
   InitGame -> do
     seed <- H.liftEffect $ randomSeed
-    H.put { game: Just { stage: runGenerator seed (generator { x: 50, y: 50 }) } }
+    H.put { game: Just { stage: runGenerator seed (generator { x: 30, y: 30 }) } }
     pure unit
 
 onGame :: (Game -> Game) -> State -> State
