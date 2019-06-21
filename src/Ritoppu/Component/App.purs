@@ -7,7 +7,6 @@ import Prelude hiding (div)
 
 import Data.Map as Map
 import Data.Maybe (Maybe(..))
-import Data.Tuple (Tuple(..))
 import Effect.Aff (Aff)
 import Halogen as H
 import Halogen.HTML as HH
@@ -16,7 +15,6 @@ import Ritoppu.Action (ActionResult, inactive)
 import Ritoppu.Action.Move (move)
 import Ritoppu.Display (build)
 import Ritoppu.Model (Direction(..), Game, Stage)
-import Ritoppu.Model.Tile (Tile(..)) as T
 import Ritoppu.Generator (generate)
 import Web.UIEvent.KeyboardEvent (KeyboardEvent)
 import Web.UIEvent.KeyboardEvent as KE
