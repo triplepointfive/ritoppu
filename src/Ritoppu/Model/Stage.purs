@@ -4,6 +4,7 @@ module Ritoppu.Model.Stage
   , playerAt
   , tileAt
   , availableToMoveTo
+  , initStage
   ) where
 
 import Prelude
@@ -32,3 +33,10 @@ creatureAt stage pos = false
 
 tileAt :: Stage -> Point -> Maybe Tile
 tileAt stage pos = Map.lookup pos stage.tiles
+
+initStage :: Point -> Stage
+initStage size =
+  { player: { pos: { x: 0, y: 0 } }
+  , tiles: Map.empty
+  , size
+  }
