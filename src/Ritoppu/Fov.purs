@@ -46,19 +46,19 @@ fov radius origin notSolid = execState calc Map.empty
 
     where
 
-    beam row start end = void $
-      foldM
+    beam row start end = when (start > end) do
+      void $ foldM
           withDistance
           { newStart: 0.0, blocked: false, start, end, stop: false }
           (row .. radius)
 
     withDistance meta distance
       | meta.blocked = pure meta
-      | otherwise = foldM (withDeltaX distance) (meta { stop = false }) (-distance .. 0)
+      | otherwise = foldM (withDeltaX distance) (meta { stop = false }) (distance .. 0)
 
     withDeltaX :: Int -> Meta -> Int -> State Mask Meta
-    withDeltaX distance meta@{ start, end, stop, blocked, newStart } deltaX = case unit of
-      _ | stop || current.x < 0 || current.y < 0 || current.x > 100 || current.y > 100 || start < rightSlope
+    withDeltaX deltaY meta@{ start, end, stop, blocked, newStart } deltaX = case unit of
+      _ | stop || current.x < 0 || current.y < 0 || current.x > 100 || current.y > 100 || start <= rightSlope
           -> pure meta
       _ | end > leftSlope -> pure meta { stop = true }
       _ -> do
@@ -68,22 +68,20 @@ fov radius origin notSolid = execState calc Map.empty
         case notSolid current of
             true | blocked -> pure meta { blocked = false, start = newStart }
             false | blocked -> pure meta { newStart = rightSlope }
-            false | distance < radius -> do
-                beam (distance + 1) start leftSlope
+            false | deltaY < radius -> do
+                beam (deltaY + 1) start leftSlope
                 pure meta { blocked = true, newStart = rightSlope }
             _ -> pure meta
 
       where
-
-      deltaY = -distance
 
       current =
           { x: origin.x + deltaX * xx + deltaY * xy
           , y: origin.y + deltaX * yx + deltaY * yy
           }
 
-      leftSlope = (toNumber deltaX - 0.5) / (toNumber deltaY + 0.5)
-      rightSlope = (toNumber deltaX + 0.5) / (toNumber deltaY - 0.5)
+      leftSlope = (toNumber deltaX + 0.5) / (toNumber deltaY - 0.5)
+      rightSlope = (toNumber deltaX - 0.5) / (toNumber deltaY + 0.5)
 
 doubleDistance :: Int -> Int -> Int
 doubleDistance x y = x * x + y * y
