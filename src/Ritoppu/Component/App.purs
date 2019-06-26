@@ -54,7 +54,7 @@ render app = case app.game of
     [ div "level-map" $
         map
             (div "row")
-            (build (fov 5.0 game.stage.player.pos (availableToMoveTo game.stage)) game.stage)
+            (build (fov 10 game.stage.player.pos (availableToMoveTo game.stage)) game.stage)
     ]
   Nothing -> div "" [ HH.text "Loading..." ]
 

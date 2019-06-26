@@ -5,15 +5,24 @@ module Ritoppu.Fov
 
 import Prelude
 
+import Data.Array ((..))
 import Control.Monad.State (State, execState, modify_)
-import Data.Foldable (for_)
-import Data.Int (round, toNumber)
+import Data.Foldable (for_, foldM)
+import Data.Int (toNumber)
 import Data.Map as Map
 import Ritoppu.Model (Point)
 
 type Mask = Map.Map Point Boolean
 
-fov :: Number -> Point -> (Point -> Boolean) -> Mask
+type Meta =
+    { end :: Number
+    , start :: Number
+    , stop :: Boolean
+    , blocked :: Boolean
+    , newStart :: Number
+    }
+
+fov :: Int -> Point -> (Point -> Boolean) -> Mask
 fov radius origin notSolid = execState calc Map.empty
 
   where
@@ -29,71 +38,60 @@ fov radius origin notSolid = execState calc Map.empty
 
     when (notSolid origin) $
         for_ deltas $ \{ x, y } -> do
-            castLight 0.0 x y 0.0
-            castLight x 0.0 0.0 y
+            castLight 0 x y 0
+            castLight x 0 0 y
 
-  castLight :: Number -> Number -> Number -> Number -> State Mask Unit
-  castLight xx xy yx yy = iter
-      { row: 1.0
-      , start: 1.0
-      , end: 0.0
-      , distance: 1.0
-      , blocked: false
-      , newStart: 0.0
-      , deltaX: -1.0
-      }
+  castLight :: Int -> Int -> Int -> Int -> State Mask Unit
+  castLight xx xy yx yy = beam 1 1.0 0.0
 
     where
 
-    iter params@{ row, start, end, distance, blocked, newStart, deltaX } = case unit of
-      _ | start < end
-          -> pure unit
-      _ | deltaX > 0.0
-          -> if blocked || distance > radius - 1.0
-            then
-              pure unit
-            else
-              iter params { distance = distance + 1.0, deltaX = -distance - 1.0 }
-      _ | currentX > 100 || currentY > 100 || currentX < 0 || currentY < 0 || start < rightSlope
-          -> iter nextIter
-      _ | end > leftSlope
-          -> iter params { distance = distance + 1.0, deltaX = -distance - 1.0 }
-      _ -> do
-        when
-          (doubleDistance deltaX distance <= doubleRadius)
-          (mark { x: currentX, y: currentY })
+    beam row start end = void $
+      foldM
+          withDistance
+          { newStart: 0.0, blocked: false, start, end, stop: false }
+          (row .. radius)
 
-        if blocked
-          then
-            if notSolid { x: currentX, y: currentY }
-            then
-              iter nextIter { start = newStart, blocked = false }
-            else
-              iter nextIter { newStart = rightSlope }
-          else
-            if not (notSolid { x: currentX, y: currentY }) && distance < radius
-            then do
-              iter nextIter { newStart = rightSlope, blocked = true }
-              iter params { newStart = 0.0, blocked = false, row = distance + 1.0, distance = distance + 1.0, end = leftSlope }
-            else
-              iter nextIter
+    withDistance meta distance
+      | meta.blocked = pure meta
+      | otherwise = foldM (withDeltaX distance) (meta { stop = false }) (-distance .. 0)
+
+    withDeltaX :: Int -> Meta -> Int -> State Mask Meta
+    withDeltaX distance meta@{ start, end, stop, blocked, newStart } deltaX = case unit of
+      _ | stop || current.x < 0 || current.y < 0 || current.x > 100 || current.y > 100 || start < rightSlope
+          -> pure meta
+      _ | end > leftSlope -> pure meta { stop = true }
+      _ -> do
+        when (doubleDistance deltaX deltaY <= doubleRadius) do
+            mark current
+
+        case notSolid current of
+            true | blocked -> pure meta { blocked = false, start = newStart }
+            false | blocked -> pure meta { newStart = rightSlope }
+            false | distance < radius -> do
+                beam (distance + 1) start leftSlope
+                pure meta { blocked = true, newStart = rightSlope }
+            _ -> pure meta
 
       where
 
-      nextIter = params { deltaX = deltaX + 1.0 }
+      deltaY = -distance
 
-      currentX = round (toNumber origin.x + deltaX * xx - distance * xy)
-      currentY = round (toNumber origin.y + deltaX * yx - distance * yy)
-      leftSlope = (deltaX - 0.5) / (-distance + 0.5)
-      rightSlope = (deltaX + 0.5) / (-distance - 0.5)
+      current =
+          { x: origin.x + deltaX * xx + deltaY * xy
+          , y: origin.y + deltaX * yx + deltaY * yy
+          }
 
-doubleDistance :: Number -> Number -> Number
+      leftSlope = (toNumber deltaX - 0.5) / (toNumber deltaY + 0.5)
+      rightSlope = (toNumber deltaX + 0.5) / (toNumber deltaY - 0.5)
+
+doubleDistance :: Int -> Int -> Int
 doubleDistance x y = x * x + y * y
 
-deltas :: Array { x :: Number, y :: Number }
+deltas :: Array Point
 deltas =
-  [ { x: 1.0, y: 1.0 }
-  , { x: 1.0, y: -1.0 }
-  , { x: -1.0, y: -1.0 }
-  , { x: -1.0, y: 1.0 }
+  [ { x: 1, y: 1 }
+  , { x: 1, y: -1 }
+  , { x: -1, y: -1 }
+  , { x: -1, y: 1 }
   ]
