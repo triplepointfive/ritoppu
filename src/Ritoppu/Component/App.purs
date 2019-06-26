@@ -14,7 +14,8 @@ import Ritoppu.Random (runGenerator, randomSeed)
 import Ritoppu.Action (ActionResult, inactive)
 import Ritoppu.Action.Move (move)
 import Ritoppu.Display (build)
-import Ritoppu.Model (Direction(..), Game)
+import Ritoppu.Model (Direction(..), Game, availableToMoveTo)
+import Ritoppu.Fov (fov)
 import Ritoppu.DungeonGenerator (generator)
 import Web.UIEvent.KeyboardEvent (KeyboardEvent)
 import Web.UIEvent.KeyboardEvent as KE
@@ -53,7 +54,7 @@ render app = case app.game of
     [ div "level-map" $
         map
             (div "row")
-            (build game.stage)
+            (build (fov 5.0 game.stage.player.pos (availableToMoveTo game.stage)) game.stage)
     ]
   Nothing -> div "" [ HH.text "Loading..." ]
 
