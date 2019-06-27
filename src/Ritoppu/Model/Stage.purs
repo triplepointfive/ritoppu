@@ -14,7 +14,6 @@ import Data.Map as Map
 import Data.Maybe (Maybe, fromMaybe)
 import Data.Set as Set
 import Ritoppu.Model.Creature (Creature)
-import Ritoppu.Model.CreatureType (CreatureType(..))
 import Ritoppu.Model.FovMask (FovMask, initFovMask)
 import Ritoppu.Model.Point (Point)
 import Ritoppu.Model.Tile (Tile(..), passibleThrough)
