@@ -6,10 +6,11 @@ module Ritoppu.Display
 import Prelude hiding (div)
 
 import Data.Array (range)
+import Data.Maybe (Maybe(..))
 import Data.Newtype (wrap)
 import Halogen.HTML as HH
 import Halogen.HTML.Properties as HP
-import Ritoppu.Model (Point, Stage, Tile(..), isSeenTile, isVisibleTile, playerAt, tileAt)
+import Ritoppu.Model (Point, Stage, Tile(..), creatureAt, isSeenTile, isVisibleTile, playerAt, tileAt)
 
 type DisplayTile = forall p i. HH.HTML p i
 
@@ -24,16 +25,20 @@ build stage = map
     (range 0 stage.size.y)
 
 buildElem :: Stage -> Point -> DisplayTile
-buildElem stage pos = case tileAt stage pos of
+buildElem stage pos = case creatureAt stage pos of
   _ | not (isSeenTile stage.fovMask pos)
       -> div "tile -nothing" []
-  tile | not (isVisibleTile stage.fovMask pos)
+  _ | not (isVisibleTile stage.fovMask pos)
       -> displayTile " -seen" tile []
-  tile | playerAt stage pos
+  Just creature
+      -> displayTile "" tile [ div "creature -orc" [] ]
+  _ | playerAt stage pos
       -> displayTile "" tile [ div "creature -player" [] ]
-  tile -> displayTile "" tile []
+  _ -> displayTile "" tile []
 
   where
+
+  tile = tileAt stage pos
 
   displayTile :: forall p i. String -> Tile -> Array (HH.HTML p i) -> HH.HTML p i
   displayTile var = case _ of
