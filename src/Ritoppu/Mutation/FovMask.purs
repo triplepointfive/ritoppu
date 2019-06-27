@@ -54,7 +54,7 @@ rebuildFov radius origin notSolid mask = { visible, seen }
       | otherwise = foldM (withDeltaX distance) (meta { stop = false }) (distance .. 0)
 
     withDeltaX deltaY meta@{ start, end, stop, blocked, newStart } deltaX = case unit of
-      _ | stop || current.x < 0 || current.y < 0 || current.x > 100 || current.y > 100 || start <= rightSlope
+      _ | stop || start <= rightSlope
           -> pure meta
       _ | end > leftSlope -> pure meta { stop = true }
       _ -> do
