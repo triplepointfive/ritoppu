@@ -5,12 +5,16 @@ module Ritoppu.Component.App
 
 import Prelude hiding (div)
 
+import Data.Array ((:), take)
+import Data.Foldable (foldM)
 import Data.Maybe (Maybe(..))
 import Effect.Aff (Aff)
+import Effect.Aff.Class (class MonadAff)
 import Halogen as H
 import Halogen.HTML as HH
 import Halogen.HTML.Properties as HP
 import Ritoppu.Action (ActionResult, inactive)
+import Ritoppu.Action as A
 import Ritoppu.Action.Move (move)
 import Ritoppu.Display (build)
 import Ritoppu.DungeonGenerator (generator)
@@ -27,7 +31,7 @@ type Message = Void
 data Query a
   = KeyboardDown KeyboardEvent a
 
-type State = { game :: Maybe Game }
+type State = { game :: Maybe Game, logs :: Array String }
 
 div :: forall p i. String -> Array (HH.HTML p i) -> HH.HTML p i
 div classes = HH.div [ HP.class_ (H.ClassName classes) ]
@@ -46,7 +50,7 @@ component =
     }
 
 initialState :: State
-initialState = { game: Nothing }
+initialState = { game: Nothing, logs: [] }
 
 render :: forall p i. State -> HH.HTML p i
 render app = case app.game of
@@ -55,14 +59,15 @@ render app = case app.game of
         map
             (div "row")
             (build game.stage)
+    , div "logger-block" (map (\log -> div "message" [ HH.text log ]) app.logs)
     ]
   Nothing -> div "" [ HH.text "Loading..." ]
 
 handleAction :: forall o. Action -> H.HalogenM State Action () o Aff Unit
 handleAction = case _ of
   InitGame -> do
-    seed <- H.liftEffect $ randomSeed
-    H.put { game: Just { stage: updateFov $ runGenerator seed (generator { x: 30, y: 30 }) } }
+    seed <- H.liftEffect randomSeed
+    H.modify_ (_ { game = Just { stage: updateFov $ runGenerator seed (generator { x: 30, y: 30 }) } })
     pure unit
 
 onGame :: (Game -> Game) -> State -> State
@@ -70,8 +75,19 @@ onGame f app = app { game = f <$> app.game }
 
 handleQuery :: forall a. Query a -> H.HalogenM State Action () Message Aff (Maybe a)
 handleQuery (KeyboardDown ev next) = do
-  H.modify_ (onGame (\game -> ((keyToAction (KE.key ev)) game).result))
-  pure (Just next)
+  state <- H.get
+  case state.game of
+    Just game -> do
+      let { result, actions } = (keyToAction (KE.key ev)) game
+      foldM processAction (state { game = Just result }) actions >>= H.put
+      pure (Just next)
+    Nothing ->
+      pure (Just next)
+
+processAction :: forall m. Bind m => MonadAff m => State -> A.Action -> m State
+processAction state = case _ of
+  A.LogMessage sound -> do
+      pure state { logs = take 5 (sound : state.logs) }
 
 keyToAction :: String -> (Game -> ActionResult Game)
 keyToAction = case _ of

@@ -1,16 +1,15 @@
 module Ritoppu.Action
-  ( Action
+  ( Action(..)
   , ActionResult
   , addAction
   , inactive
   , withAction
   ) where
 
-import Prelude
-
 import Data.Array ((:))
 
-type Action = Unit
+data Action
+  = LogMessage String
 
 type ActionResult a =
   { result :: a

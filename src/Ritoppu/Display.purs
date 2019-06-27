@@ -6,7 +6,6 @@ module Ritoppu.Display
 import Prelude hiding (div)
 
 import Data.Array (range)
-import Data.Maybe (Maybe(..))
 import Data.Newtype (wrap)
 import Halogen.HTML as HH
 import Halogen.HTML.Properties as HP
