@@ -10,13 +10,13 @@ import Effect.Aff (Aff)
 import Halogen as H
 import Halogen.HTML as HH
 import Halogen.HTML.Properties as HP
-import Ritoppu.Random (runGenerator, randomSeed)
 import Ritoppu.Action (ActionResult, inactive)
 import Ritoppu.Action.Move (move)
 import Ritoppu.Display (build)
-import Ritoppu.Model (Direction(..), Game, availableToMoveTo)
-import Ritoppu.Fov (fov)
 import Ritoppu.DungeonGenerator (generator)
+import Ritoppu.Model (Direction(..), Game)
+import Ritoppu.Mutation (updateFov)
+import Ritoppu.Random (runGenerator, randomSeed)
 import Web.UIEvent.KeyboardEvent (KeyboardEvent)
 import Web.UIEvent.KeyboardEvent as KE
 
@@ -54,7 +54,7 @@ render app = case app.game of
     [ div "level-map" $
         map
             (div "row")
-            (build (fov 10 game.stage.player.pos (availableToMoveTo game.stage)) game.stage)
+            (build game.stage)
     ]
   Nothing -> div "" [ HH.text "Loading..." ]
 
@@ -62,7 +62,7 @@ handleAction :: forall o. Action -> H.HalogenM State Action () o Aff Unit
 handleAction = case _ of
   InitGame -> do
     seed <- H.liftEffect $ randomSeed
-    H.put { game: Just { stage: runGenerator seed (generator { x: 30, y: 30 }) } }
+    H.put { game: Just { stage: updateFov $ runGenerator seed (generator { x: 30, y: 30 }) } }
     pure unit
 
 onGame :: (Game -> Game) -> State -> State

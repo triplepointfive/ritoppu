@@ -1,5 +1,6 @@
 module Ritoppu.Model
   ( module Ritoppu.Model.Direction
+  , module Ritoppu.Model.FovMask
   , module Ritoppu.Model.Game
   , module Ritoppu.Model.Point
   , module Ritoppu.Model.Rect
@@ -8,6 +9,7 @@ module Ritoppu.Model
   ) where
 
 import Ritoppu.Model.Direction (Direction(..), directionDelta)
+import Ritoppu.Model.FovMask (FovMask, isVisibleTile)
 import Ritoppu.Model.Game (Game)
 import Ritoppu.Model.Point (Point)
 import Ritoppu.Model.Rect (Rect, center, fillRect, innerRect, intersect, outerRect)

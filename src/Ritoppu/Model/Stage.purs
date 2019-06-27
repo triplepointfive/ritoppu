@@ -11,7 +11,8 @@ import Prelude
 
 import Data.Map as Map
 import Data.Maybe (Maybe, maybe)
-
+import Data.Set as Set
+import Ritoppu.Model.FovMask (FovMask)
 import Ritoppu.Model.Point (Point)
 import Ritoppu.Model.Tile (Tile, passibleThrough)
 
@@ -19,6 +20,8 @@ type Stage =
   { player :: { pos :: Point }
   , tiles :: Map.Map Point Tile
   , size :: { x :: Int, y :: Int }
+  , seen :: Set.Set Point -- TODO: Should remember which item was there
+  , fovMask :: FovMask
   }
 
 availableToMoveTo :: Stage -> Point -> Boolean
@@ -39,4 +42,6 @@ initStage size =
   { player: { pos: { x: 0, y: 0 } }
   , tiles: Map.empty
   , size
+  , seen: Set.empty
+  , fovMask: Map.empty
   }
