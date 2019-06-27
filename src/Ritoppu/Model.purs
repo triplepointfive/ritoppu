@@ -9,7 +9,7 @@ module Ritoppu.Model
   ) where
 
 import Ritoppu.Model.Direction (Direction(..), directionDelta)
-import Ritoppu.Model.FovMask (FovMask, isVisibleTile)
+import Ritoppu.Model.FovMask (FovMask, isVisibleTile, isSeenTile)
 import Ritoppu.Model.Game (Game)
 import Ritoppu.Model.Point (Point)
 import Ritoppu.Model.Rect (Rect, center, fillRect, innerRect, intersect, outerRect)

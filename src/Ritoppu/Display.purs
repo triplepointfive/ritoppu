@@ -6,12 +6,11 @@ module Ritoppu.Display
 import Prelude hiding (div)
 
 import Data.Array (range)
-import Data.Map as Map
-import Data.Maybe (Maybe(..), fromMaybe)
+import Data.Maybe (Maybe(..))
 import Data.Newtype (wrap)
 import Halogen.HTML as HH
 import Halogen.HTML.Properties as HP
-import Ritoppu.Model (Point, Stage, Tile(..), isVisibleTile, playerAt, tileAt)
+import Ritoppu.Model (Point, Stage, Tile(..), isSeenTile, isVisibleTile, playerAt, tileAt)
 
 type DisplayTile = forall p i. HH.HTML p i
 
@@ -21,19 +20,23 @@ div classes = HH.div [ HP.class_ (wrap classes) ]
 build :: forall p i. Stage -> Array (Array (HH.HTML p i))
 build stage = map
     (\y -> map
-        (\x -> toDisplayTile stage { x, y })
+        (\x -> buildElem stage { x, y })
         (range 0 stage.size.x))
     (range 0 stage.size.y)
 
-toDisplayTile :: Stage -> Point -> DisplayTile
-toDisplayTile stage pos = case tileAt stage pos of
-  _ | not (isVisibleTile stage.fovMask pos) -> div "tile -nothing" []
-  Just tile | playerAt stage pos
-      -> stageTileToDisplayTile tile [ div "creature -player" [] ]
-  Just tile -> stageTileToDisplayTile tile []
-  Nothing -> stageTileToDisplayTile Wall []
+buildElem :: Stage -> Point -> DisplayTile
+buildElem stage pos = case tileAt stage pos of
+  _ | not (isSeenTile stage.fovMask pos)
+      -> div "tile -nothing" []
+  tile | not (isVisibleTile stage.fovMask pos)
+      -> displayTile " -seen" tile []
+  tile | playerAt stage pos
+      -> displayTile "" tile [ div "creature -player" [] ]
+  tile -> displayTile "" tile []
 
-stageTileToDisplayTile :: forall p i. Tile -> Array (HH.HTML p i) -> HH.HTML p i
-stageTileToDisplayTile = case _ of
-  Floor -> div "tile -floor"
-  Wall -> div "tile -wall"
+  where
+
+  displayTile :: forall p i. String -> Tile -> Array (HH.HTML p i) -> HH.HTML p i
+  displayTile var = case _ of
+    Floor -> div ("tile -floor" <> var)
+    Wall -> div ("tile -wall" <> var)

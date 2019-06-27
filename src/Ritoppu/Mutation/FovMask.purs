@@ -4,24 +4,27 @@ module Ritoppu.Mutation.FovMask
 
 import Prelude
 
+import Control.Monad.State (execState, modify_)
 import Data.Array ((..))
-import Control.Monad.State (State, execState, modify_)
 import Data.Foldable (for_, foldM)
 import Data.Int (toNumber)
 import Data.Map as Map
+import Data.Set as Set
 import Ritoppu.Model (Point, FovMask)
 
-rebuildFov :: Int -> Point -> (Point -> Boolean) -> FovMask
-rebuildFov radius origin notSolid = execState calc Map.empty
+rebuildFov :: Int -> Point -> (Point -> Boolean) -> FovMask -> FovMask
+rebuildFov radius origin notSolid mask = { visible, seen }
 
   where
 
+  seen = Set.union mask.seen (Set.fromFoldable (Map.keys visible))
+
+  visible = execState calc Map.empty
+
   doubleRadius = radius * radius
 
-  mark :: Point -> State FovMask Unit
   mark point = modify_ (Map.insert point true)
 
-  calc :: State FovMask Unit
   calc = do
     mark origin
 
@@ -36,7 +39,6 @@ rebuildFov radius origin notSolid = execState calc Map.empty
                 castLight 0 x y 0
                 castLight x 0 0 y
 
-  castLight :: Int -> Int -> Int -> Int -> State FovMask Unit
   castLight xx xy yx yy = beam 1 1.0 0.0
 
     where

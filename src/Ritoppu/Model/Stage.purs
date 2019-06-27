@@ -10,11 +10,11 @@ module Ritoppu.Model.Stage
 import Prelude
 
 import Data.Map as Map
-import Data.Maybe (Maybe, maybe)
+import Data.Maybe (fromMaybe)
 import Data.Set as Set
-import Ritoppu.Model.FovMask (FovMask)
+import Ritoppu.Model.FovMask (FovMask, initFovMask)
 import Ritoppu.Model.Point (Point)
-import Ritoppu.Model.Tile (Tile, passibleThrough)
+import Ritoppu.Model.Tile (Tile(..), passibleThrough)
 
 type Stage =
   { player :: { pos :: Point }
@@ -25,8 +25,7 @@ type Stage =
   }
 
 availableToMoveTo :: Stage -> Point -> Boolean
-availableToMoveTo stage pos =
-  maybe false passibleThrough (tileAt stage pos)
+availableToMoveTo stage pos = passibleThrough (tileAt stage pos)
 
 playerAt :: Stage -> Point -> Boolean
 playerAt stage pos = stage.player.pos == pos
@@ -34,8 +33,8 @@ playerAt stage pos = stage.player.pos == pos
 creatureAt :: Stage -> Point -> Boolean
 creatureAt stage pos = false
 
-tileAt :: Stage -> Point -> Maybe Tile
-tileAt stage pos = Map.lookup pos stage.tiles
+tileAt :: Stage -> Point -> Tile
+tileAt stage pos = fromMaybe Wall (Map.lookup pos stage.tiles)
 
 initStage :: Point -> Stage
 initStage size =
@@ -43,5 +42,5 @@ initStage size =
   , tiles: Map.empty
   , size
   , seen: Set.empty
-  , fovMask: Map.empty
+  , fovMask: initFovMask
   }
