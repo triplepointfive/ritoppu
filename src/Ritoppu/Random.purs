@@ -3,6 +3,7 @@ module Ritoppu.Random
   , module Random.PseudoRandom
   , runGenerator
   , newPoint
+  , newPointInRect
   , newInt
   , newRect
   ) where
@@ -10,8 +11,10 @@ module Ritoppu.Random
 import Prelude
 
 import Control.Monad.State (State, evalState, get, put)
-import Ritoppu.Model (Point, Rect)
+import Data.Array (length, null, index, (:))
+import Data.Maybe (Maybe(..))
 import Random.PseudoRandom (Seed, randomR, randomSeed)
+import Ritoppu.Model (Point, Rect)
 
 type RandomGenerator a = State Seed a
 
@@ -27,6 +30,25 @@ newInt from to = do
 
 newPoint :: Int -> Int -> Int -> Int -> RandomGenerator Point
 newPoint fromX fromY toX toY = do
+  x <- newInt fromX toX
+  y <- newInt fromY toY
+  pure { x, y }
+
+samples :: forall a. Int ->  Array a -> RandomGenerator (Array a)
+samples n xs
+  | null xs = pure []
+  | n > 0 = do
+      i <- newInt 0 (length xs)
+      case index xs i of
+        Just v -> do
+          rest <- samples (n - 1) xs
+          pure (v : rest)
+        Nothing -> do
+          pure []
+  | otherwise = pure []
+
+newPointInRect :: Rect -> RandomGenerator Point
+newPointInRect { a: { x: fromX, y: fromY }, b: { x: toX, y: toY } } = do
   x <- newInt fromX toX
   y <- newInt fromY toY
   pure { x, y }

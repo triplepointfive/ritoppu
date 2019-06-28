@@ -4,7 +4,7 @@ module Ritoppu.DungeonGenerator
 
 import Prelude
 
-import Data.Array (concatMap, head, (..), (:), delete, nub, index)
+import Data.Array (concatMap, head, (..), (:), nub, index)
 import Data.Foldable (any, foldl, foldr, length)
 import Data.Map as Map
 import Data.Maybe (Maybe(..), fromMaybe)
