@@ -5,8 +5,10 @@ module Ritoppu.Model.CreatureType
 import Prelude
 
 data CreatureType
-  = Orc
+  = RedNagaHatchling
+  | RedNaga
 
 instance showCreatureType :: Show CreatureType where
   show = case _ of
-    Orc -> "Orc"
+    RedNagaHatchling -> "Red naga hatchling"
+    RedNaga -> "Red naga"

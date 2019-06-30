@@ -9,17 +9,22 @@ import Data.Foldable (any, foldl, foldr, length)
 import Data.Map as Map
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Set as Set
-import Data.Traversable (traverse)
+import Data.Traversable (traverse, for)
 import Data.Tuple (Tuple(..))
-import Ritoppu.Model (Tile(..), Stage, Point, initStage, Rect, intersect, center, outerRect, fillRect)
+import Ritoppu.Model (Point, Rect, Stage, Tile(..), CreatureRepository, center, fillRect, initStage, intersect, outerRect)
 import Ritoppu.Model.CreatureType (CreatureType(..))
 import Ritoppu.Model.Tile (passibleThrough)
 import Ritoppu.Mutation (setTile)
-import Ritoppu.Random (RandomGenerator, newPoint, newRect, newInt)
+import Ritoppu.Random (RandomGenerator, newCreature, newInt, newPoint, newRect)
 import Ritoppu.Utils (nTimes)
 
 maxMonstersPerRoom :: Int
 maxMonstersPerRoom = 5
+
+creaturesRepository :: CreatureRepository
+creaturesRepository v
+  | v < 80 = { type: RedNagaHatchling }
+  | otherwise = { type: RedNaga }
 
 generator :: Point -> RandomGenerator Stage
 generator size = do
@@ -46,7 +51,11 @@ generateCreatures stage = do
 
   poses <- nTimes monstersCount (newInt 0 (length availablePoses))
 
-  pure stage { creatures = Map.fromFoldable $ map (\x -> Tuple (fromMaybe { x: 0, y: 0 } (index availablePoses x)) { type: Orc }) (nub poses) }
+  creaturesList <- for (nub poses) $ \x -> do
+    creature <- newCreature creaturesRepository
+    pure $ Tuple (fromMaybe { x: 0, y: 0 } (index availablePoses x)) creature
+
+  pure stage { creatures = Map.fromFoldable creaturesList }
 
   where
 

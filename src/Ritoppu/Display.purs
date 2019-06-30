@@ -10,7 +10,7 @@ import Data.Maybe (Maybe(..))
 import Data.Newtype (wrap)
 import Halogen.HTML as HH
 import Halogen.HTML.Properties as HP
-import Ritoppu.Model (Point, Stage, Tile(..), creatureAt, isSeenTile, isVisibleTile, playerAt, tileAt)
+import Ritoppu.Model (Point, Stage, Tile(..), Creature, CreatureType(..), creatureAt, isSeenTile, isVisibleTile, playerAt, tileAt)
 
 type DisplayTile = forall p i. HH.HTML p i
 
@@ -31,7 +31,7 @@ buildElem stage pos = case creatureAt stage pos of
   _ | not (isVisibleTile stage.fovMask pos)
       -> displayTile " -seen" tile []
   Just creature
-      -> displayTile "" tile [ div "creature -orc" [] ]
+      -> displayTile "" tile [ div ("creature " <> creatureClass creature) [] ]
   _ | playerAt stage pos
       -> displayTile "" tile [ div "creature -player" [] ]
   _ -> displayTile "" tile []
@@ -44,3 +44,8 @@ buildElem stage pos = case creatureAt stage pos of
   displayTile var = case _ of
     Floor -> div ("tile -floor" <> var)
     Wall -> div ("tile -wall" <> var)
+
+creatureClass :: Creature -> String
+creatureClass creature = case creature.type of
+  RedNagaHatchling -> "-red_naga_hatchling"
+  RedNaga -> "-red_naga"

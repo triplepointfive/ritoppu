@@ -4,6 +4,7 @@ module Ritoppu.Random
   , runGenerator
   , newPoint
   , newPointInRect
+  , newCreature
   , newInt
   , newRect
   ) where
@@ -14,12 +15,15 @@ import Control.Monad.State (State, evalState, get, put)
 import Data.Array (length, null, index, (:))
 import Data.Maybe (Maybe(..))
 import Random.PseudoRandom (Seed, randomR, randomSeed)
-import Ritoppu.Model (Point, Rect)
+import Ritoppu.Model (Point, Rect, CreatureRepository, Creature)
 
 type RandomGenerator a = State Seed a
 
 runGenerator :: forall a. Seed -> RandomGenerator a -> a
 runGenerator seed f = evalState f seed
+
+newCreature :: CreatureRepository -> RandomGenerator Creature
+newCreature gen = gen <$> newInt 0 100
 
 newInt :: Int -> Int -> RandomGenerator Int
 newInt from to = do
