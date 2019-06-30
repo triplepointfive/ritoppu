@@ -12,7 +12,7 @@ module Ritoppu.Model
 
 import Ritoppu.Model.Direction (Direction(..), directionDelta)
 import Ritoppu.Model.FovMask (FovMask, isVisibleTile, isSeenTile)
-import Ritoppu.Model.Creature (Creature)
+import Ritoppu.Model.Creature (Creature, creatureName)
 import Ritoppu.Model.CreatureType (CreatureType)
 import Ritoppu.Model.Game (Game)
 import Ritoppu.Model.Point (Point)
