@@ -8,6 +8,7 @@ module Ritoppu.Model
   , module Ritoppu.Model.Point
   , module Ritoppu.Model.Rect
   , module Ritoppu.Model.Stage
+  , module Ritoppu.Model.Stats
   , module Ritoppu.Model.Tile
   ) where
 
@@ -20,4 +21,5 @@ import Ritoppu.Model.Game (Game)
 import Ritoppu.Model.Point (Point)
 import Ritoppu.Model.Rect (Rect, center, fillRect, innerRect, intersect, outerRect)
 import Ritoppu.Model.Stage (Stage, creatureAt, playerAt, tileAt, availableToMoveTo, initStage, anybodyAt)
+import Ritoppu.Model.Stats (Stats)
 import Ritoppu.Model.Tile (Tile(..))

@@ -5,9 +5,10 @@ module Ritoppu.Model.Creature
 
 import Prelude
 
+import Ritoppu.Model.Stats (Stats)
 import Ritoppu.Model.CreatureType (CreatureType)
 
-type Creature = { type :: CreatureType }
+type Creature = { type :: CreatureType, stats :: Stats }
 
 creatureName :: Creature -> String
 creatureName creature = show creature.type

@@ -23,8 +23,14 @@ maxMonstersPerRoom = 5
 
 creaturesRepository :: CreatureRepository
 creaturesRepository v
-  | v < 80 = { type: RedNagaHatchling }
-  | otherwise = { type: RedNaga }
+  | v < 80 =
+      { type: RedNagaHatchling
+      , stats: { maxHp: 10, hp: 10, defense: 0, power: 3 }
+      }
+  | otherwise =
+      { type: RedNaga
+      , stats: { maxHp: 16, hp: 16, defense: 1, power: 4 }
+      }
 
 generator :: Point -> RandomGenerator Stage
 generator size = do
@@ -36,7 +42,7 @@ addRooms stage rooms = do
   playerPos <- newPoint a.x a.y b.x b.y
   corridors <- pure $ as Floor $ builtCorridors (map center rooms)
 
-  generateCreatures $ add stage { player = { pos: playerPos } } (corridors <> builtRooms)
+  generateCreatures $ add stage { player { pos = playerPos } } (corridors <> builtRooms)
 
   where
 
