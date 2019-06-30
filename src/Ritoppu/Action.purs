@@ -4,6 +4,7 @@ module Ritoppu.Action
   , addAction
   , inactive
   , withAction
+  , onResult
   ) where
 
 import Data.Array ((:))
@@ -24,3 +25,6 @@ inactive result = { result, actions: [] }
 
 withAction :: forall a. a -> Action -> ActionResult a
 withAction result action = { result, actions: [action] }
+
+onResult :: forall a. (a -> a) -> ActionResult a -> ActionResult a
+onResult f { result, actions } = { result: f result, actions }
