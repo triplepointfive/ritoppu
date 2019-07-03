@@ -1,17 +1,27 @@
 module Ritoppu.Action.EnemyAct
   ( creatureAct
+  , wavePath
+  , buildPath
   ) where
 
 import Prelude
+import Prelude
 
-import Data.Foldable (foldr)
+import Data.Array (concatMap, nub, null, filter, find, (:))
+import Data.Foldable (any, foldr)
 import Data.Int (round, toNumber)
 import Data.Map as Map
-import Data.Tuple (Tuple(..))
+import Data.Map as Map
+import Data.Map as Map
+import Data.Maybe (Maybe(..))
+import Data.Set as Set
+import Data.Tuple (Tuple(..), snd, uncurry)
 import Math (sqrt)
+import Pipes.Prelude as Map
 import Ritoppu.Action (Action(..), ActionResult, addAction, inactive, onResult)
-import Ritoppu.Model (Game, Point, Stage, Creature, availableToMoveTo, creatureName)
+import Ritoppu.Model (Creature, Game, Point, Stage, adjustPoints, anybodyAt, availableToMoveTo, creatureName)
 
+-- TODO: Creatures must not to walk on each other
 creatureAct :: Game -> ActionResult Game
 creatureAct game =
   foldr
@@ -29,7 +39,8 @@ addCreature pos creature stage =
 
 moveForward :: Point -> Stage -> Point
 moveForward origin stage@{ player: { pos } } = case unit of
-  _ | availableToMoveTo stage dest && dest /= pos -> dest
+  _ | availableToMoveTo stage dest && dest /= pos && not (anybodyAt stage dest)
+      -> dest
   _ -> origin
   where
 
@@ -43,3 +54,39 @@ moveForward origin stage@{ player: { pos } } = case unit of
 
   distance = sqrt (dx * dx + dy * dy)
 
+type Path = Array Point
+
+type DistanceMap = Map.Map Point Int
+
+wavePath :: Point -> Point -> (Point -> Boolean) -> Maybe Path
+wavePath origin dest cellAvailable = iter [origin] 1 (Map.singleton origin 0)
+
+  where
+
+  iter :: Array Point -> Int -> DistanceMap -> Maybe Path
+  iter toCheck step distanceMap = case unit of
+    _ | null toCheck -> Nothing
+    _ | any ((==) dest) newPoints -> Just (dest : buildPath dest step distanceMap)
+    _ | otherwise -> iter newPoints (step + 1) newDistanceMap
+
+    where
+
+    newDistanceMap = foldr
+      (\point -> Map.insert point step)
+      distanceMap
+      newPoints
+
+    newPoints
+      = filter (\point -> cellAvailable point && not (Map.member point distanceMap))
+      $ nub -- Performance: Consider using sets
+      $ concatMap adjustPoints toCheck
+
+buildPath :: Point -> Int -> DistanceMap -> Path
+buildPath pos step distanceMap = case find next (adjustPoints pos) of
+  Just p -> p : buildPath p (step - 1) distanceMap
+  Nothing -> []
+
+  where
+
+  next :: Point -> Boolean
+  next p = Map.lookup p distanceMap == Just (step - 1)
