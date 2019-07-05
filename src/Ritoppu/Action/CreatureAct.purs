@@ -1,25 +1,18 @@
-module Ritoppu.Action.EnemyAct
+module Ritoppu.Action.CreatureAct
   ( creatureAct
   , wavePath
-  , buildPath
   ) where
 
 import Prelude
-import Prelude
 
-import Data.Array (concatMap, nub, null, filter, find, (:))
+import Data.Array (concatMap, nub, null, filter, find, (:), last)
 import Data.Foldable (any, foldr)
-import Data.Int (round, toNumber)
-import Data.Map as Map
-import Data.Map as Map
-import Data.Map as Map
+import Data.Map (Map, empty, insert, lookup, member, singleton, toUnfoldableUnordered) as Map
 import Data.Maybe (Maybe(..))
-import Data.Set as Set
-import Data.Tuple (Tuple(..), snd, uncurry)
-import Math (sqrt)
-import Pipes.Prelude as Map
-import Ritoppu.Action (Action(..), ActionResult, addAction, inactive, onResult)
-import Ritoppu.Model (Creature, Game, Point, Stage, adjustPoints, anybodyAt, availableToMoveTo, creatureName)
+import Data.Ord (abs)
+import Data.Tuple (Tuple(..))
+import Ritoppu.Action (ActionResult, inactive, onResult)
+import Ritoppu.Model (Creature, Game, Point, Stage, Stats, adjustPoints, availableToMoveTo)
 
 -- TODO: Creatures must not to walk on each other
 creatureAct :: Game -> ActionResult Game
@@ -37,22 +30,21 @@ addCreature :: Point -> Creature -> Stage -> Stage
 addCreature pos creature stage =
   stage { creatures = Map.insert pos creature stage.creatures }
 
+damage :: Stats -> Stats -> Int
+damage { power } { defense } = abs (defense - power)
+
+-- TODO: Hit if next to player
 moveForward :: Point -> Stage -> Point
-moveForward origin stage@{ player: { pos } } = case unit of
-  _ | availableToMoveTo stage dest && dest /= pos && not (anybodyAt stage dest)
-      -> dest
-  _ -> origin
+moveForward origin stage@{ player: { pos } } =
+  case wavePath origin pos cellAvailable of
+      Just path -> case last path of
+        Just dest -> dest
+        _ -> origin
+      _ -> origin
+
   where
 
-  dest = origin +
-      { x: round (dx / distance)
-      , y: round (dy / distance)
-      }
-
-  dx = toNumber (pos.x - origin.x)
-  dy = toNumber (pos.y - origin.y)
-
-  distance = sqrt (dx * dx + dy * dy)
+  cellAvailable dest = availableToMoveTo stage dest
 
 type Path = Array Point
 
@@ -81,12 +73,13 @@ wavePath origin dest cellAvailable = iter [origin] 1 (Map.singleton origin 0)
       $ nub -- Performance: Consider using sets
       $ concatMap adjustPoints toCheck
 
-buildPath :: Point -> Int -> DistanceMap -> Path
-buildPath pos step distanceMap = case find next (adjustPoints pos) of
-  Just p -> p : buildPath p (step - 1) distanceMap
-  Nothing -> []
+  buildPath :: Point -> Int -> DistanceMap -> Path
+  buildPath pos step distanceMap = case find next (adjustPoints pos) of
+    _ | step == 1 -> []
+    Just p -> p : buildPath p (step - 1) distanceMap
+    Nothing -> []
 
-  where
+    where
 
-  next :: Point -> Boolean
-  next p = Map.lookup p distanceMap == Just (step - 1)
+    next :: Point -> Boolean
+    next p = Map.lookup p distanceMap == Just (step - 1)

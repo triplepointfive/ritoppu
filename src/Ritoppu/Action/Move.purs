@@ -6,7 +6,7 @@ import Prelude
 
 import Data.Maybe (Maybe(..))
 import Ritoppu.Action (Action(..), ActionResult, addAction, withAction)
-import Ritoppu.Action.EnemyAct (creatureAct)
+import Ritoppu.Action.CreatureAct (creatureAct)
 import Ritoppu.Model (Direction, Game, availableToMoveTo, creatureName, creatureAt)
 import Ritoppu.Mutation (moveTo, updateFov)
 
