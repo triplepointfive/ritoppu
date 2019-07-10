@@ -60,6 +60,7 @@ render app = case app.game of
             (div "row")
             (build game.stage)
     , div "logger-block" (map (\log -> div "message" [ HH.text log ]) app.logs)
+    , div "" [ HH.text (show game.stage.player.stats.hp)]
     ]
   Nothing -> div "" [ HH.text "Loading..." ]
 

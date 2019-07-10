@@ -13,7 +13,8 @@ import Data.Maybe (Maybe(..))
 import Data.Ord (abs)
 import Data.Tuple (Tuple(..))
 import Ritoppu.Action (Action(..), ActionResult, addAction, inactive, onResult)
-import Ritoppu.Model (Creature, Game, Point, Stage, Stats, adjustPoints, anybodyAt, availableToMoveTo, creatureAt, creatureName, isNextTo)
+import Ritoppu.Model (Creature, Game, Point, Stage, Stats, adjustPoints, anybodyAt, availableToMoveTo, creatureAt, creatureName, damageTo, isNextTo)
+import Ritoppu.Mutation (takeDamage)
 
 -- TODO: Creatures must not to walk on each other
 creatureAct :: Game -> ActionResult Game
@@ -26,23 +27,41 @@ actNext result@{ result: game } = case head creaturesToAct of
 
   where
 
+  -- EXTRA: Act only when visible
   creaturesToAct :: Array (Tuple Point Creature)
   creaturesToAct = filter
     (\(Tuple _ { turn }) -> game.stage.player.turn > turn)
     (Map.toUnfoldableUnordered game.stage.creatures)
 
 actCreature :: Tuple Point Creature -> ActionResult Game -> ActionResult Game
-actCreature (Tuple pos creature) result@{ result: game, actions }
+actCreature cr@(Tuple pos creature) result
   -- EXTRA: Ensure player is not dead yet
-  | isNextTo pos game.stage.player.pos
-    = addAction
-      (LogMessage ("The " <> creatureName creature <> " insults you! Your ego is damaged!"))
-      $ onResult (\game -> game
-        { stage = moveCreature pos pos (acted creature) game.stage
-        }) result
+  | isNextTo pos result.result.stage.player.pos
+    = attack cr result
   | otherwise =
     onResult (\game -> game
       { stage = moveCreature pos (moveForward pos game.stage) (acted creature) game.stage
+      }) result
+
+attack :: Tuple Point Creature -> ActionResult Game -> ActionResult Game
+attack (Tuple pos creature) result = case damage of
+  0 ->
+    addAction
+      (LogMessage (creatureName creature <> " attacks you but does no damage."))
+      withActedCreature
+  _ ->
+    addAction
+      (LogMessage (creatureName creature <> " attacks you for " <> show damage <> "hit points."))
+      $ onResult (\game -> game { stage { player { stats = takeDamage damage game.stage.player.stats } } } )
+      withActedCreature
+
+  where
+
+  damage = damageTo creature.stats result.result.stage.player.stats
+
+  withActedCreature =
+    onResult (\game -> game
+      { stage = moveCreature pos pos (acted creature) game.stage
       }) result
 
 acted :: Creature -> Creature
@@ -58,9 +77,6 @@ removeCreature pos stage =
 
 moveCreature :: Point -> Point -> Creature -> Stage -> Stage
 moveCreature from dest creature = addCreature dest creature <<< removeCreature from
-
-damage :: Stats -> Stats -> Int
-damage { power } { defense } = abs (defense - power)
 
 moveForward :: Point -> Stage -> Point
 moveForward origin stage@{ player: { pos } } =

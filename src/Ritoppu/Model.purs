@@ -5,6 +5,7 @@ module Ritoppu.Model
   , module Ritoppu.Model.CreatureRepository
   , module Ritoppu.Model.CreatureType
   , module Ritoppu.Model.Game
+  , module Ritoppu.Model.Player
   , module Ritoppu.Model.Point
   , module Ritoppu.Model.Rect
   , module Ritoppu.Model.Stage
@@ -18,8 +19,9 @@ import Ritoppu.Model.CreatureType (CreatureType(..))
 import Ritoppu.Model.Direction (Direction(..), directionDelta)
 import Ritoppu.Model.FovMask (FovMask, isVisibleTile, isSeenTile)
 import Ritoppu.Model.Game (Game)
+import Ritoppu.Model.Player (Player)
 import Ritoppu.Model.Point (Point, adjustPoints, isNextTo)
 import Ritoppu.Model.Rect (Rect, center, fillRect, innerRect, intersect, outerRect)
 import Ritoppu.Model.Stage (Stage, creatureAt, playerAt, tileAt, availableToMoveTo, initStage, anybodyAt)
-import Ritoppu.Model.Stats (Stats)
+import Ritoppu.Model.Stats (Stats, damageTo)
 import Ritoppu.Model.Tile (Tile(..))

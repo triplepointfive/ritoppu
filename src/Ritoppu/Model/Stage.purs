@@ -15,12 +15,12 @@ import Data.Maybe (Maybe, fromMaybe)
 import Data.Set as Set
 import Ritoppu.Model.Creature (Creature)
 import Ritoppu.Model.FovMask (FovMask, initFovMask)
+import Ritoppu.Model.Player (Player, initPlayer)
 import Ritoppu.Model.Point (Point)
-import Ritoppu.Model.Stats (Stats)
 import Ritoppu.Model.Tile (Tile(..), passibleThrough)
 
 type Stage =
-  { player :: { pos :: Point, stats :: Stats, turn :: Int }
+  { player :: Player
   , tiles :: Map.Map Point Tile
   , size :: { x :: Int, y :: Int }
   , seen :: Set.Set Point -- TODO: Should remember which item was there
@@ -45,11 +45,7 @@ tileAt stage pos = fromMaybe Wall (Map.lookup pos stage.tiles)
 
 initStage :: Point -> Stage
 initStage size =
-  { player:
-      { pos: { x: 0, y: 0 }
-      , stats: { maxHp: 30, hp: 30, defense: 2, power: 5 }
-      , turn: 0
-      }
+  { player: initPlayer
   , tiles: Map.empty
   , size
   , seen: Set.empty
