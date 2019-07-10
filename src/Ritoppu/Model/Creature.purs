@@ -8,7 +8,7 @@ import Prelude
 import Ritoppu.Model.Stats (Stats)
 import Ritoppu.Model.CreatureType (CreatureType)
 
-type Creature = { type :: CreatureType, stats :: Stats }
+type Creature = { type :: CreatureType, stats :: Stats, turn :: Int }
 
 creatureName :: Creature -> String
 creatureName creature = show creature.type

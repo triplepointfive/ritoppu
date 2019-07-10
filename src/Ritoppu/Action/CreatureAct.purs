@@ -5,9 +5,9 @@ module Ritoppu.Action.CreatureAct
 
 import Prelude
 
-import Data.Array (concatMap, nub, null, filter, find, (:), last)
+import Data.Array (concatMap, filter, find, head, last, nub, null, (:))
 import Data.Foldable (any, foldr)
-import Data.Map (Map, empty, insert, lookup, member, singleton, toUnfoldableUnordered) as Map
+import Data.Map (Map, delete, empty, insert, lookup, member, singleton, toUnfoldableUnordered) as Map
 import Data.Maybe (Maybe(..))
 import Data.Ord (abs)
 import Data.Tuple (Tuple(..))
@@ -16,19 +16,39 @@ import Ritoppu.Model (Creature, Game, Point, Stage, Stats, adjustPoints, availab
 
 -- TODO: Creatures must not to walk on each other
 creatureAct :: Game -> ActionResult Game
-creatureAct game =
-  foldr
-      turn
-      (inactive (game { stage { creatures = Map.empty :: Map.Map Point Creature } } ))
-      ((Map.toUnfoldableUnordered game.stage.creatures) :: Array (Tuple Point Creature))
+creatureAct = actNext <<< inactive
 
-turn :: Tuple Point Creature -> ActionResult Game -> ActionResult Game
-turn (Tuple pos creature) =
-  onResult (\game -> game { stage = addCreature (moveForward pos game.stage) creature game.stage })
+actNext :: ActionResult Game -> ActionResult Game
+actNext result@{ result: game } = case head creaturesToAct of
+  Just creature -> actNext $ actCreature creature result
+  Nothing -> result
+
+  where
+
+  creaturesToAct :: Array (Tuple Point Creature)
+  creaturesToAct = filter
+    (\(Tuple _ { turn }) -> game.stage.player.turn > turn)
+    (Map.toUnfoldableUnordered game.stage.creatures)
+
+actCreature :: Tuple Point Creature -> ActionResult Game -> ActionResult Game
+actCreature (Tuple pos creature) =
+  onResult (\game -> game
+    { stage = moveCreature pos (moveForward pos game.stage) (acted creature) game.stage
+    })
+
+acted :: Creature -> Creature
+acted c = c { turn = c.turn + 5 }
 
 addCreature :: Point -> Creature -> Stage -> Stage
 addCreature pos creature stage =
   stage { creatures = Map.insert pos creature stage.creatures }
+
+removeCreature :: Point -> Stage -> Stage
+removeCreature pos stage =
+  stage { creatures = Map.delete pos stage.creatures }
+
+moveCreature :: Point -> Point -> Creature -> Stage -> Stage
+moveCreature from dest creature = addCreature dest creature <<< removeCreature from
 
 damage :: Stats -> Stats -> Int
 damage { power } { defense } = abs (defense - power)

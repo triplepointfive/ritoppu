@@ -26,10 +26,12 @@ creaturesRepository v
   | v < 80 =
       { type: RedNagaHatchling
       , stats: { maxHp: 10, hp: 10, defense: 0, power: 3 }
+      , turn: 0
       }
   | otherwise =
       { type: RedNaga
       , stats: { maxHp: 16, hp: 16, defense: 1, power: 4 }
+      , turn: 0
       }
 
 generator :: Point -> RandomGenerator Stage

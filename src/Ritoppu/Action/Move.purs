@@ -17,8 +17,9 @@ move dir game@{ stage } = case creatureAt stage dest of
       "You kick the " <> creatureName creature <> " in the shins, much to its annoyance!"))
       $ creatureAct game
 
+  -- FIX: move turn to function
   _ | availableToMoveTo stage dest
-      -> creatureAct $ game { stage = updateFov stage { player { pos = dest } } }
+      -> creatureAct $ game { stage = updateFov stage { player { pos = dest, turn = stage.player.turn + 5 } } }
   _ -> withAction game (LogMessage "Hit a wall")
 
   where

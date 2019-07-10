@@ -20,7 +20,7 @@ import Ritoppu.Model.Stats (Stats)
 import Ritoppu.Model.Tile (Tile(..), passibleThrough)
 
 type Stage =
-  { player :: { pos :: Point, stats :: Stats }
+  { player :: { pos :: Point, stats :: Stats, turn :: Int }
   , tiles :: Map.Map Point Tile
   , size :: { x :: Int, y :: Int }
   , seen :: Set.Set Point -- TODO: Should remember which item was there
@@ -45,7 +45,11 @@ tileAt stage pos = fromMaybe Wall (Map.lookup pos stage.tiles)
 
 initStage :: Point -> Stage
 initStage size =
-  { player: { pos: { x: 0, y: 0 }, stats: { maxHp: 30, hp: 30, defense: 2, power: 5 } }
+  { player:
+      { pos: { x: 0, y: 0 }
+      , stats: { maxHp: 30, hp: 30, defense: 2, power: 5 }
+      , turn: 0
+      }
   , tiles: Map.empty
   , size
   , seen: Set.empty
