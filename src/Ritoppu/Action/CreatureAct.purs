@@ -4,17 +4,15 @@ module Ritoppu.Action.CreatureAct
   ) where
 
 import Prelude
-import Prelude
 
 import Data.Array (concatMap, filter, find, head, last, nub, null, (:))
 import Data.Foldable (any, foldr)
-import Data.Map (Map, delete, empty, insert, lookup, member, singleton, toUnfoldableUnordered) as Map
+import Data.Map (Map, insert, lookup, member, singleton, toUnfoldableUnordered) as Map
 import Data.Maybe (Maybe(..))
-import Data.Ord (abs)
 import Data.Tuple (Tuple(..))
 import Ritoppu.Action (Action(..), ActionResult, addAction, inactive, onResult)
-import Ritoppu.Model (Creature, Game, Point, Stage, Stats, adjustPoints, anybodyAt, availableToMoveTo, creatureAt, creatureName, damageTo, isNextTo)
-import Ritoppu.Mutation (takeDamage)
+import Ritoppu.Model (Creature, Game, Point, Stage, adjustPoints, anybodyAt, availableToMoveTo, creatureName, damageTo, isNextTo)
+import Ritoppu.Mutation (moveCreature, updateCreature, takeDamage)
 
 -- TODO: Creatures must not to walk on each other
 creatureAct :: Game -> ActionResult Game
@@ -61,22 +59,11 @@ attack (Tuple pos creature) result = case damage of
 
   withActedCreature =
     onResult (\game -> game
-      { stage = moveCreature pos pos (acted creature) game.stage
+      { stage = updateCreature pos acted game.stage
       }) result
 
 acted :: Creature -> Creature
 acted c = c { turn = c.turn + 5 }
-
-addCreature :: Point -> Creature -> Stage -> Stage
-addCreature pos creature stage =
-  stage { creatures = Map.insert pos creature stage.creatures }
-
-removeCreature :: Point -> Stage -> Stage
-removeCreature pos stage =
-  stage { creatures = Map.delete pos stage.creatures }
-
-moveCreature :: Point -> Point -> Creature -> Stage -> Stage
-moveCreature from dest creature = addCreature dest creature <<< removeCreature from
 
 moveForward :: Point -> Stage -> Point
 moveForward origin stage@{ player: { pos } } =
