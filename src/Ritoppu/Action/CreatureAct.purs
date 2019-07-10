@@ -4,6 +4,7 @@ module Ritoppu.Action.CreatureAct
   ) where
 
 import Prelude
+import Prelude
 
 import Data.Array (concatMap, filter, find, head, last, nub, null, (:))
 import Data.Foldable (any, foldr)
@@ -11,8 +12,8 @@ import Data.Map (Map, delete, empty, insert, lookup, member, singleton, toUnfold
 import Data.Maybe (Maybe(..))
 import Data.Ord (abs)
 import Data.Tuple (Tuple(..))
-import Ritoppu.Action (ActionResult, inactive, onResult)
-import Ritoppu.Model (Creature, Game, Point, Stage, Stats, adjustPoints, availableToMoveTo)
+import Ritoppu.Action (Action(..), ActionResult, addAction, inactive, onResult)
+import Ritoppu.Model (Creature, Game, Point, Stage, Stats, adjustPoints, anybodyAt, availableToMoveTo, creatureAt, creatureName, isNextTo)
 
 -- TODO: Creatures must not to walk on each other
 creatureAct :: Game -> ActionResult Game
@@ -31,10 +32,18 @@ actNext result@{ result: game } = case head creaturesToAct of
     (Map.toUnfoldableUnordered game.stage.creatures)
 
 actCreature :: Tuple Point Creature -> ActionResult Game -> ActionResult Game
-actCreature (Tuple pos creature) =
-  onResult (\game -> game
-    { stage = moveCreature pos (moveForward pos game.stage) (acted creature) game.stage
-    })
+actCreature (Tuple pos creature) result@{ result: game, actions }
+  -- EXTRA: Ensure player is not dead yet
+  | isNextTo pos game.stage.player.pos
+    = addAction
+      (LogMessage ("The " <> creatureName creature <> " insults you! Your ego is damaged!"))
+      $ onResult (\game -> game
+        { stage = moveCreature pos pos (acted creature) game.stage
+        }) result
+  | otherwise =
+    onResult (\game -> game
+      { stage = moveCreature pos (moveForward pos game.stage) (acted creature) game.stage
+      }) result
 
 acted :: Creature -> Creature
 acted c = c { turn = c.turn + 5 }
@@ -53,12 +62,11 @@ moveCreature from dest creature = addCreature dest creature <<< removeCreature f
 damage :: Stats -> Stats -> Int
 damage { power } { defense } = abs (defense - power)
 
--- TODO: Hit if next to player
 moveForward :: Point -> Stage -> Point
 moveForward origin stage@{ player: { pos } } =
   case wavePath origin pos cellAvailable of
       Just path -> case last path of
-        Just dest -> dest
+        Just dest | not (anybodyAt stage dest) -> dest
         _ -> origin
       _ -> origin
 
