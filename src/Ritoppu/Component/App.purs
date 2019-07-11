@@ -18,7 +18,7 @@ import Ritoppu.Action as A
 import Ritoppu.Action.Move (move)
 import Ritoppu.Display (build)
 import Ritoppu.DungeonGenerator (generator)
-import Ritoppu.Model (Direction(..), Game)
+import Ritoppu.Model (Direction(..), Game, GameState(..), gameIsOver)
 import Ritoppu.Mutation (updateFov)
 import Ritoppu.Random (runGenerator, randomSeed)
 import Web.UIEvent.KeyboardEvent (KeyboardEvent)
@@ -61,14 +61,23 @@ render app = case app.game of
             (build game.stage)
     , div "logger-block" (map (\log -> div "message" [ HH.text log ]) app.logs)
     , div "" [ HH.text (show game.stage.player.stats.hp)]
+    , stateInterface game
     ]
   Nothing -> div "" [ HH.text "Loading..." ]
+
+stateInterface :: forall p i. Game -> HH.HTML p i
+stateInterface game = case game.state of
+  Idle -> div "" []
+  Dead -> div "screen -dead" [ HH.text "YOU DIED" ]
 
 handleAction :: forall o. Action -> H.HalogenM State Action () o Aff Unit
 handleAction = case _ of
   InitGame -> do
     seed <- H.liftEffect randomSeed
-    H.modify_ (_ { game = Just { stage: updateFov $ runGenerator seed (generator { x: 30, y: 30 }) } })
+    H.modify_ (_ { game = Just
+        { stage: updateFov $ runGenerator seed (generator { x: 30, y: 30 })
+        , state: Idle
+        } })
     pure unit
 
 onGame :: (Game -> Game) -> State -> State
@@ -78,11 +87,11 @@ handleQuery :: forall a. Query a -> H.HalogenM State Action () Message Aff (Mayb
 handleQuery (KeyboardDown ev next) = do
   state <- H.get
   case state.game of
-    Just game -> do
+    Just game | not (gameIsOver game) -> do
       let { result, actions } = (keyToAction (KE.key ev)) game
       foldM processAction (state { game = Just result }) actions >>= H.put
       pure (Just next)
-    Nothing ->
+    _ ->
       pure (Just next)
 
 processAction :: forall m. Bind m => MonadAff m => State -> A.Action -> m State

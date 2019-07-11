@@ -7,11 +7,11 @@ import Prelude
 
 import Data.Array (concatMap, filter, find, head, last, nub, null, (:))
 import Data.Foldable (any, foldr)
-import Data.Map (Map, insert, lookup, member, singleton, toUnfoldableUnordered) as Map
+import Data.Map as Map
 import Data.Maybe (Maybe(..))
 import Data.Tuple (Tuple(..))
 import Ritoppu.Action (Action(..), ActionResult, addAction, inactive, onResult)
-import Ritoppu.Model (Creature, Game, Point, Stage, adjustPoints, anybodyAt, availableToMoveTo, creatureName, damageTo, isNextTo)
+import Ritoppu.Model (Creature, Game, Point, Stage, adjustPoints, anybodyAt, availableToMoveTo, creatureName, damageTo, isNextTo, GameState(..), gameIsOver)
 import Ritoppu.Mutation (moveCreature, updateCreature, takeDamage)
 
 -- TODO: Creatures must not to walk on each other
@@ -20,6 +20,7 @@ creatureAct = actNext <<< inactive
 
 actNext :: ActionResult Game -> ActionResult Game
 actNext result@{ result: game } = case head creaturesToAct of
+  _ | gameIsOver game -> result
   Just creature -> actNext $ actCreature creature result
   Nothing -> result
 
@@ -33,7 +34,6 @@ actNext result@{ result: game } = case head creaturesToAct of
 
 actCreature :: Tuple Point Creature -> ActionResult Game -> ActionResult Game
 actCreature cr@(Tuple pos creature) result
-  -- EXTRA: Ensure player is not dead yet
   | isNextTo pos result.result.stage.player.pos
     = attack cr result
   | otherwise =
@@ -46,6 +46,14 @@ attack (Tuple pos creature) result = case damage of
   0 ->
     addAction
       (LogMessage (creatureName creature <> " attacks you but does no damage."))
+      withActedCreature
+  _ | damage >= result.result.stage.player.stats.hp ->
+    addAction
+      (LogMessage (creatureName creature <> " attacks you for " <> show damage <> "hit points."))
+      $ onResult (\game -> game
+          { stage { player { stats = takeDamage damage game.stage.player.stats } }
+          , state = Dead
+          } )
       withActedCreature
   _ ->
     addAction
