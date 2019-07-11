@@ -7,5 +7,5 @@ module Ritoppu.Mutation
 
 import Ritoppu.Mutation.FovMask (rebuildFov)
 import Ritoppu.Mutation.Point (moveTo)
-import Ritoppu.Mutation.Stage (setTile, updateFov, addCreature, removeCreature, moveCreature, updateCreature)
+import Ritoppu.Mutation.Stage (addItem, setTile, updateFov, addCreature, removeCreature, moveCreature, updateCreature)
 import Ritoppu.Mutation.Stats (takeDamage)

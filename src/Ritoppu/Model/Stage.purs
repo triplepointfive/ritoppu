@@ -6,15 +6,18 @@ module Ritoppu.Model.Stage
   , tileAt
   , availableToMoveTo
   , initStage
+  , itemAt
   ) where
 
 import Prelude
 
+import Data.Array (head)
 import Data.Map as Map
 import Data.Maybe (Maybe, fromMaybe)
 import Data.Set as Set
 import Ritoppu.Model.Creature (Creature)
 import Ritoppu.Model.FovMask (FovMask, initFovMask)
+import Ritoppu.Model.Item (Item)
 import Ritoppu.Model.Player (Player, initPlayer)
 import Ritoppu.Model.Point (Point)
 import Ritoppu.Model.Tile (Tile(..), passibleThrough)
@@ -23,10 +26,14 @@ type Stage =
   { player :: Player
   , tiles :: Map.Map Point Tile
   , size :: { x :: Int, y :: Int }
-  , seen :: Set.Set Point -- TODO: Should remember which item was there
+  , seen :: Set.Set Point -- EXTRA: Should remember which item was there
+  , items :: Map.Map Point (Array Item)
   , fovMask :: FovMask
   , creatures :: Map.Map Point Creature
   }
+
+itemAt :: Stage -> Point -> Maybe Item
+itemAt stage pos = head $ fromMaybe [] (Map.lookup pos stage.items)
 
 anybodyAt :: Stage -> Point -> Boolean
 anybodyAt stage pos = Map.member pos stage.creatures
@@ -49,6 +56,7 @@ initStage size =
   , tiles: Map.empty
   , size
   , seen: Set.empty
+  , items: Map.empty
   , fovMask: initFovMask
   , creatures: Map.empty
   }

@@ -39,3 +39,7 @@ $sprite-ratio: $cell-size / $sprite-tile-size * $sprite-tile-size
     @include tile(6, 16)
   > .creature.-red_naga
     @include tile(10, 16)
+
+  > .-corpse
+    transform: rotate(180deg)
+    filter: brightness(80%)

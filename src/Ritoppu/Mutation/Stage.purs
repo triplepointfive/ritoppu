@@ -5,13 +5,15 @@ module Ritoppu.Mutation.Stage
   , removeCreature
   , moveCreature
   , updateCreature
+  , addItem
   ) where
 
 import Prelude
 
+import Data.Array (cons)
 import Data.Map as Map
-import Data.Maybe (Maybe(..))
-import Ritoppu.Model (Point, Stage, Tile, Creature, availableToMoveTo)
+import Data.Maybe (Maybe(..), maybe)
+import Ritoppu.Model (Creature, Item, Point, Stage, Tile, availableToMoveTo)
 import Ritoppu.Mutation.FovMask (rebuildFov)
 
 setTile :: Tile -> Point -> Stage  -> Stage
@@ -21,6 +23,10 @@ updateFov :: Stage -> Stage
 updateFov stage = stage
   { fovMask = rebuildFov 10 stage.player.pos (availableToMoveTo stage) stage.fovMask
   }
+
+addItem :: Point -> Item -> Stage -> Stage
+addItem pos item stage
+  = stage { items = Map.alter (Just <<< maybe [item] (cons item)) pos stage.items }
 
 addCreature :: Point -> Creature -> Stage -> Stage
 addCreature pos creature stage =
