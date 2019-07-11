@@ -32,6 +32,8 @@ buildElem stage pos = case { creature: creatureAt stage pos, item: itemAt stage 
       -> displayTile " -seen" tile []
   { creature: Just creature }
       -> displayTile "" tile [ div ("creature " <> creatureClass creature.type) [] ]
+  _ | playerAt stage pos && stage.player.stats.hp <= 0 -- EXTRA: prettify method
+      -> displayTile "" tile [ div "creature -player -corpse" [] ]
   _ | playerAt stage pos
       -> displayTile "" tile [ div "creature -player" [] ]
   { item: Just item }
