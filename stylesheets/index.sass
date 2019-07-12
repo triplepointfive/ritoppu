@@ -26,3 +26,23 @@ body
 
     -webkit-font-smoothing: antialiased
     text-shadow: 0 0 1rem black, 0 0 1rem black, 0 0 1rem black, 0 0 1rem black, 0 0 1rem black, 0 0 1rem black, 0 0 1rem black, 0 0 1rem black, 0 0 1rem black, 0 0 1rem black, 0 0 1rem black, 0 0 1rem black, 0 0 1rem black, 0 0 1rem black, 0 0 1rem black, 0 0 1rem black, 0 0 1rem black, 0 0 1rem black, 0 0 1rem black, 0 0 1rem black
+
+.panel-sidebar
+  position: fixed
+  right: 0
+  width: 300px
+  color: white
+  background-color: black
+  z-index: 5
+  top: 0
+
+  // EXTRA: Use elements
+  > .stats
+    > dl
+      > dd
+        display: inline-block
+        width: 40%
+        margin: 0
+      > dt
+        display: inline-block
+        width: 60%

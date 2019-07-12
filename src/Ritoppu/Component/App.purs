@@ -60,8 +60,8 @@ render app = case app.game of
             (div "row")
             (build game.stage)
     , div "logger-block" (map (\log -> div "message" [ HH.text log ]) app.logs)
-    , div "" [ HH.text (show game.stage.player.stats.hp)]
     , stateInterface game
+    , sidebar game
     ]
   Nothing -> div "" [ HH.text "Loading..." ]
 
@@ -69,6 +69,17 @@ stateInterface :: forall p i. Game -> HH.HTML p i
 stateInterface game = case game.state of
   Idle -> div "" []
   Dead -> div "screen -dead" [ HH.text "YOU DIED" ]
+
+sidebar :: forall p i. Game -> HH.HTML p i
+sidebar game =
+  div "panel-sidebar"
+    [ div "stats"
+        [ HH.dl []
+            [ HH.dd [] [ HH.text "HP" ]
+            , HH.dt [] [ HH.text (show game.stage.player.stats.hp <> " / " <> show game.stage.player.stats.maxHp) ]
+            ]
+        ]
+    ]
 
 handleAction :: forall o. Action -> H.HalogenM State Action () o Aff Unit
 handleAction = case _ of
