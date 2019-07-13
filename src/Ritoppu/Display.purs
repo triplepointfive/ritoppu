@@ -10,7 +10,7 @@ import Data.Maybe (Maybe(..))
 import Data.Newtype (wrap)
 import Halogen.HTML as HH
 import Halogen.HTML.Properties as HP
-import Ritoppu.Model (CreatureType(..), Item(..), Point, Stage, Tile(..), creatureAt, isSeenTile, isVisibleTile, itemAt, playerAt, tileAt)
+import Ritoppu.Model (CreatureType(..), Item(..), Point, Stage, Tile(..), creatureAt, creatureName, isSeenTile, isVisibleTile, itemAt, playerAt, tileAt)
 
 type DisplayTile = forall p i. HH.HTML p i
 
@@ -31,7 +31,13 @@ buildElem stage pos = case { creature: creatureAt stage pos, item: itemAt stage 
   _ | not (isVisibleTile stage.fovMask pos)
       -> displayTile " -seen" tile []
   { creature: Just creature }
-      -> displayTile "" tile [ div ("creature " <> creatureClass creature.type) [] ]
+      -> displayTile "" tile
+        [ HH.div
+          [ HP.class_ (wrap ("creature " <> creatureClass creature.type))
+          , HP.title (creatureName creature)
+          ]
+          []
+        ]
   _ | playerAt stage pos && stage.player.stats.hp <= 0 -- EXTRA: prettify method
       -> displayTile "" tile [ div "creature -player -corpse" [] ]
   _ | playerAt stage pos
