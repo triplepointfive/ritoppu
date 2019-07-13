@@ -10,7 +10,7 @@ import Data.Foldable (any, foldr)
 import Data.Map as Map
 import Data.Maybe (Maybe(..))
 import Data.Tuple (Tuple(..))
-import Ritoppu.Action (Action(..), ActionResult, addAction, inactive, onResult)
+import Ritoppu.Action (Action(..), ActionResult, Message(..), addAction, inactive, onResult)
 import Ritoppu.Model (Creature, Game, Point, Stage, adjustPoints, anybodyAt, availableToMoveTo, creatureName, damageTo, isNextTo, GameState(..), gameIsOver)
 import Ritoppu.Mutation (moveCreature, updateCreature, takeDamage)
 
@@ -45,11 +45,11 @@ attack :: Tuple Point Creature -> ActionResult Game -> ActionResult Game
 attack (Tuple pos creature) result = case damage of
   0 ->
     addAction
-      (LogMessage (creatureName creature <> " attacks you but does no damage."))
+      (LogMessage (DamageYouHarmlessM creature))
       withActedCreature
   _ | damage >= result.result.stage.player.stats.hp ->
     addAction
-      (LogMessage (creatureName creature <> " attacks you for " <> show damage <> "hit points."))
+      (LogMessage (DamageYouM creature damage))
       $ onResult (\game -> game
           { stage { player { stats = takeDamage damage game.stage.player.stats } }
           , state = Dead
@@ -57,7 +57,7 @@ attack (Tuple pos creature) result = case damage of
       withActedCreature
   _ ->
     addAction
-      (LogMessage (creatureName creature <> " attacks you for " <> show damage <> "hit points."))
+      (LogMessage (DamageYouM creature damage))
       $ onResult (\game -> game { stage { player { stats = takeDamage damage game.stage.player.stats } } } )
       withActedCreature
 

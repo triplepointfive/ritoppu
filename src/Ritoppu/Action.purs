@@ -1,6 +1,7 @@
 module Ritoppu.Action
   ( Action(..)
   , ActionResult
+  , Message(..)
   , addAction
   , inactive
   , withAction
@@ -8,9 +9,18 @@ module Ritoppu.Action
   ) where
 
 import Data.Array ((:))
+import Ritoppu.Model (Creature)
+
+data Message
+  = DamageYouM Creature Int
+  | DamageYouHarmlessM Creature
+  | HitAWallM
+  | AttackM Creature Int
+  | AttackHarmlessM Creature
+  | AttackKillM Creature
 
 data Action
-  = LogMessage String
+  = LogMessage Message
 
 type ActionResult a =
   { result :: a

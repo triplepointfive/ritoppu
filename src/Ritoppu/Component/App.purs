@@ -17,6 +17,7 @@ import Ritoppu.Action (ActionResult, inactive)
 import Ritoppu.Action as A
 import Ritoppu.Action.Move (move)
 import Ritoppu.Display (build)
+import Ritoppu.DisplayLog (loggerBlock)
 import Ritoppu.DungeonGenerator (generator)
 import Ritoppu.Model (Direction(..), Game, GameState(..), gameIsOver)
 import Ritoppu.Mutation (updateFov)
@@ -31,7 +32,7 @@ type Message = Void
 data Query a
   = KeyboardDown KeyboardEvent a
 
-type State = { game :: Maybe Game, logs :: Array String }
+type State = { game :: Maybe Game, logs :: Array A.Message }
 
 div :: forall p i. String -> Array (HH.HTML p i) -> HH.HTML p i
 div classes = HH.div [ HP.class_ (H.ClassName classes) ]
@@ -59,7 +60,7 @@ render app = case app.game of
         map
             (div "row")
             (build game.stage)
-    , div "logger-block" (map (\log -> div "message" [ HH.text log ]) app.logs)
+    , loggerBlock app.logs
     , stateInterface game
     , sidebar game
     ]
@@ -107,8 +108,8 @@ handleQuery (KeyboardDown ev next) = do
 
 processAction :: forall m. Bind m => MonadAff m => State -> A.Action -> m State
 processAction state = case _ of
-  A.LogMessage sound -> do
-      pure state { logs = take 5 (sound : state.logs) }
+  A.LogMessage message -> do
+      pure state { logs = take 5 (message : state.logs) }
 
 keyToAction :: String -> (Game -> ActionResult Game)
 keyToAction = case _ of

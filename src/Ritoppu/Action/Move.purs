@@ -5,9 +5,9 @@ module Ritoppu.Action.Move
 import Prelude
 
 import Data.Maybe (Maybe(..))
-import Ritoppu.Action (Action(..), ActionResult, addAction, withAction)
+import Ritoppu.Action (Action(..), ActionResult, Message(..), addAction, withAction)
 import Ritoppu.Action.CreatureAct (creatureAct)
-import Ritoppu.Model (Creature, Direction, Game, Point, availableToMoveTo, creatureAt, creatureName, damageTo, newCorpse)
+import Ritoppu.Model (Creature, Direction, Game, Point, availableToMoveTo, creatureAt, damageTo, newCorpse)
 import Ritoppu.Mutation (moveTo, removeCreature, takeDamage, updateCreature, updateFov, addItem)
 
 move :: Direction -> Game -> ActionResult Game
@@ -18,7 +18,7 @@ move dir game@{ stage } = case creatureAt stage dest of
   -- TODO: Add you see log message
   _ | availableToMoveTo stage dest
       -> creatureAct $ playerTurn $ game { stage = updateFov stage { player { pos = dest } } }
-  _ -> withAction game (LogMessage "Hit a wall")
+  _ -> withAction game (LogMessage HitAWallM)
 
   where
 
@@ -28,19 +28,16 @@ move dir game@{ stage } = case creatureAt stage dest of
 attack :: Point -> Creature -> Game -> ActionResult Game
 attack pos creature game = case damage of
   0 ->
-    addAction (LogMessage (
-      "You attacked " <> creatureName creature <> " but did no damage"))
+    addAction (LogMessage (AttackHarmlessM creature))
       $ creatureAct $ playerTurn game
   _ | damage >= creature.stats.hp ->
     -- TODO: Leave corpse
-    addAction (LogMessage (
-      "You smashed " <> creatureName creature))
+    addAction (LogMessage (AttackKillM creature))
       $ creatureAct $ playerTurn game { stage
           = addItem pos (newCorpse creature)
           $ removeCreature pos game.stage }
   _ ->
-    addAction (LogMessage (
-      "You attacked " <> creatureName creature <> " and did " <> show damage <> " damage"))
+    addAction (LogMessage (AttackM creature damage))
       $ creatureAct $ playerTurn game
         { stage = updateCreature pos (\c -> c { stats = takeDamage damage c.stats }) game.stage
         }
