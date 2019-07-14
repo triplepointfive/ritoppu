@@ -6,5 +6,8 @@
     "pulp": "^13.0.0",
     "purescript": "^0.13.0",
     "sass": "^1.21.0"
+  },
+  "dependencies": {
+    "lodash": "^4.17.13"
   }
 }
