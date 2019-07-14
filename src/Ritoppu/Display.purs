@@ -64,3 +64,4 @@ creatureClass = case _ of
 itemClass :: Item -> String
 itemClass = case _ of
   Corpse creature -> "creature -corpse " <> creatureClass creature
+  HealingPotion -> "item -healing_potion"

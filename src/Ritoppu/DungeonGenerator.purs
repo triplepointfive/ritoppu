@@ -11,7 +11,7 @@ import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Set as Set
 import Data.Traversable (traverse, for)
 import Data.Tuple (Tuple(..))
-import Ritoppu.Model (Point, Rect, Stage, Tile(..), CreatureRepository, center, fillRect, initStage, intersect, outerRect)
+import Ritoppu.Model (CreatureRepository, Item(..), Point, Rect, Stage, Tile(..), center, fillRect, initStage, intersect, outerRect)
 import Ritoppu.Model.CreatureType (CreatureType(..))
 import Ritoppu.Model.Tile (passibleThrough)
 import Ritoppu.Mutation (setTile)
@@ -20,6 +20,9 @@ import Ritoppu.Utils (nTimes)
 
 maxMonstersPerRoom :: Int
 maxMonstersPerRoom = 5
+
+maxItemsPerRoom :: Int
+maxItemsPerRoom = 2
 
 creaturesRepository :: CreatureRepository
 creaturesRepository v
@@ -44,7 +47,7 @@ addRooms stage rooms = do
   playerPos <- newPoint a.x a.y b.x b.y
   corridors <- pure $ as Floor $ builtCorridors (map center rooms)
 
-  generateCreatures $ add stage { player { pos = playerPos } } (corridors <> builtRooms)
+  generateItems =<< generateCreatures (add stage { player { pos = playerPos } } (corridors <> builtRooms))
 
   where
 
@@ -71,6 +74,28 @@ generateCreatures stage = do
   availablePoses
     = Set.toUnfoldable
     $ Set.delete stage.player.pos
+    $ Map.keys
+    $ Map.filter passibleThrough stage.tiles
+
+-- TODO: Remove duplicity
+-- EXTRA: Pass real # of rooms
+generateItems :: Stage -> RandomGenerator Stage
+generateItems stage = do
+  monstersCount <- newInt 0 (maxItemsPerRoom * 3)
+
+  poses <- nTimes monstersCount (newInt 0 (length availablePoses))
+
+  itemsList <- for (nub poses) $ \x -> do
+    item <- pure [HealingPotion]
+    pure $ Tuple (fromMaybe { x: 0, y: 0 } (index availablePoses x)) item
+
+  pure stage { items = Map.fromFoldable itemsList }
+
+  where
+
+  availablePoses :: Array Point
+  availablePoses
+    = Set.toUnfoldable
     $ Map.keys
     $ Map.filter passibleThrough stage.tiles
 

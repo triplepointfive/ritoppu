@@ -30,7 +30,7 @@ $sprite-ratio: $cell-size / $sprite-tile-size * $sprite-tile-size
   &.-nothing
     @include tile(28, 44)
 
-  > .creature
+  > .creature, .item
     position: absolute
     @include tile-image
   > .creature.-player
@@ -43,3 +43,5 @@ $sprite-ratio: $cell-size / $sprite-tile-size * $sprite-tile-size
   > .-corpse
     transform: rotate(180deg)
     filter: brightness(80%)
+  > .item.-healing_potion
+    @include tile(28, 33)
