@@ -28,7 +28,7 @@ creaturesRepository :: CreatureRepository
 creaturesRepository v
   | v < 80 =
       { type: RedNagaHatchling
-      , stats: { maxHp: 10, hp: 10, defense: 0, power: 3 }
+      , stats: { maxHp: 10, hp: 10, defense: 0, power: 13 }
       , turn: 0
       }
   | otherwise =

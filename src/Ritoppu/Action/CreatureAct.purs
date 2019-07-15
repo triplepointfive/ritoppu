@@ -10,8 +10,8 @@ import Data.Foldable (any, foldr)
 import Data.Map as Map
 import Data.Maybe (Maybe(..))
 import Data.Tuple (Tuple(..))
-import Ritoppu.Action (Action(..), ActionResult, Message(..), addAction, inactive, onResult)
-import Ritoppu.Model (Creature, Game, Point, Stage, adjustPoints, anybodyAt, availableToMoveTo, damageTo, isNextTo, GameState(..), gameIsOver)
+import Ritoppu.Action (Action(..), ActionResult, Message(..), addAction, inactive, onResult, die)
+import Ritoppu.Model (Creature, Game, Point, Stage, adjustPoints, anybodyAt, availableToMoveTo, damageTo, isNextTo)
 import Ritoppu.Mutation (moveCreature, updateCreature, takeDamage)
 
 -- TODO: Creatures must not to walk on each other
@@ -20,8 +20,7 @@ creatureAct = actNext <<< inactive
 
 actNext :: ActionResult Game -> ActionResult Game
 actNext result@{ result: game } = case head creaturesToAct of
-  _ | gameIsOver game -> result
-  Just creature -> actNext $ actCreature creature result
+  Just creature -> actCreature creature result
   Nothing -> result
 
   where
@@ -36,26 +35,25 @@ actCreature :: Tuple Point Creature -> ActionResult Game -> ActionResult Game
 actCreature cr@(Tuple pos creature) result
   | isNextTo pos result.result.stage.player.pos
     = attack cr result
-  | otherwise =
+  | otherwise = actNext $
     onResult (\game -> game
       { stage = moveCreature pos (moveForward pos game.stage) (acted creature) game.stage
       }) result
 
 attack :: Tuple Point Creature -> ActionResult Game -> ActionResult Game
 attack (Tuple pos creature) result = case damage of
-  0 ->
+  0 -> actNext $
     addAction
       (LogMessage (DamageYouHarmlessM creature))
       withActedCreature
   _ | damage >= result.result.stage.player.stats.hp ->
-    addAction
-      (LogMessage (DamageYouM creature damage))
-      $ onResult (\game -> game
-          { stage { player { stats = takeDamage damage game.stage.player.stats } }
-          , state = Dead
-          } )
-      withActedCreature
-  _ ->
+    addAction (LogMessage (DamageYouM creature damage))
+    $ die
+    $ onResult (\game -> game
+        { stage { player { stats = takeDamage damage game.stage.player.stats } }
+        } )
+    withActedCreature
+  _ -> actNext $
     addAction
       (LogMessage (DamageYouM creature damage))
       $ onResult (\game -> game { stage { player { stats = takeDamage damage game.stage.player.stats } } } )

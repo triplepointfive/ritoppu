@@ -22,7 +22,7 @@ import Ritoppu.Action.PickUp (pickUp)
 import Ritoppu.Display (build)
 import Ritoppu.DisplayLog (loggerBlock)
 import Ritoppu.DungeonGenerator (generator)
-import Ritoppu.Model (Direction(..), Game, GameState(..), gameIsOver, itemName)
+import Ritoppu.Model (Direction(..), Game, itemName)
 import Ritoppu.Mutation (updateFov)
 import Ritoppu.Random (runGenerator, randomSeed)
 import Web.UIEvent.KeyboardEvent (KeyboardEvent)
@@ -35,7 +35,12 @@ type Message = Void
 data Query a
   = KeyboardDown KeyboardEvent a
 
-type State = { game :: Maybe Game, logs :: Array A.Message }
+type State = { state :: GameState, logs :: Array A.Message }
+
+data GameState
+  = Idle Game
+  | Dead Game
+  | Init
 
 div :: forall p i. String -> Array (HH.HTML p i) -> HH.HTML p i
 div classes = HH.div [ HP.class_ (H.ClassName classes) ]
@@ -54,25 +59,27 @@ component =
     }
 
 initialState :: State
-initialState = { game: Nothing, logs: [] }
+initialState = { state: Init, logs: [] }
 
 render :: forall p i. State -> HH.HTML p i
-render app = case app.game of
-  Just game -> div "app-container"
-    [ div "level-map" $
-        map
-            (div "row")
-            (build game.stage)
+render app = div "app-container" case app.state of
+  Idle game ->
+    [ gameInterface game
     , loggerBlock app.logs
-    , stateInterface game
     , sidebar game
     ]
-  Nothing -> div "" [ HH.text "Loading..." ]
+  Dead game ->
+    [ gameInterface game
+    , loggerBlock app.logs
+    , div "screen -dead" [ HH.text "YOU DIED" ]
+    , sidebar game
+    ]
+  Init ->
+    [ HH.text "Loading..."
+    ]
 
-stateInterface :: forall p i. Game -> HH.HTML p i
-stateInterface game = case game.state of
-  Idle -> div "" []
-  Dead -> div "screen -dead" [ HH.text "YOU DIED" ]
+gameInterface :: forall p i. Game -> HH.HTML p i
+gameInterface game = div "level-map" $ map (div "row") (build game.stage)
 
 sidebar :: forall p i. Game -> HH.HTML p i
 sidebar game =
@@ -103,22 +110,18 @@ handleAction :: forall o. Action -> H.HalogenM State Action () o Aff Unit
 handleAction = case _ of
   InitGame -> do
     seed <- H.liftEffect randomSeed
-    H.modify_ (_ { game = Just
+    H.modify_ (_ { state = Idle
         { stage: updateFov $ runGenerator seed (generator { x: 30, y: 30 })
-        , state: Idle
         } })
     pure unit
-
-onGame :: (Game -> Game) -> State -> State
-onGame f app = app { game = f <$> app.game }
 
 handleQuery :: forall a. Query a -> H.HalogenM State Action () Message Aff (Maybe a)
 handleQuery (KeyboardDown ev next) = do
   state <- H.get
-  case state.game of
-    Just game | not (gameIsOver game) -> do
+  case state.state of
+    Idle game -> do
       let { result, actions } = (keyToAction (KE.key ev)) game
-      foldM processAction (state { game = Just result }) actions >>= H.put
+      foldM processAction (state { state = Idle result }) actions >>= H.put
       pure (Just next)
     _ ->
       pure (Just next)
@@ -127,6 +130,8 @@ processAction :: forall m. Bind m => MonadAff m => State -> A.Action -> m State
 processAction state = case _ of
   A.LogMessage message -> do
       pure state { logs = take 5 (message : state.logs) }
+  A.Die game -> do
+      pure state { state = Dead game }
 
 keyToAction :: String -> (Game -> ActionResult Game)
 keyToAction = case _ of

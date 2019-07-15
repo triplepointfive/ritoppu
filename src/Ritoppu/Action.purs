@@ -6,10 +6,11 @@ module Ritoppu.Action
   , inactive
   , withAction
   , onResult
+  , die
   ) where
 
 import Data.Array ((:))
-import Ritoppu.Model (Creature, Item)
+import Ritoppu.Model (Creature, Item, Game)
 
 data Message
   = DamageYouM Creature Int
@@ -23,11 +24,15 @@ data Message
 
 data Action
   = LogMessage Message
+  | Die Game
 
 type ActionResult a =
   { result :: a
   , actions :: Array Action
   }
+
+die :: ActionResult Game -> ActionResult Game
+die { result, actions } = { result, actions: Die result : actions }
 
 addAction :: forall a. Action -> ActionResult a -> ActionResult a
 addAction action { result, actions } = { result, actions: action : actions }
