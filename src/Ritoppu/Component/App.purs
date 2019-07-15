@@ -40,6 +40,7 @@ type State = { state :: GameState, logs :: Array A.Message }
 data GameState
   = Idle Game
   | Dead Game
+  | UseItem Game
   | Init
 
 div :: forall p i. String -> Array (HH.HTML p i) -> HH.HTML p i
@@ -72,6 +73,11 @@ render app = div "app-container" case app.state of
     [ gameInterface game
     , loggerBlock app.logs
     , div "screen -dead" [ HH.text "YOU DIED" ]
+    , sidebar game
+    ]
+  UseItem game ->
+    [ gameInterface game
+    , loggerBlock app.logs
     , sidebar game
     ]
   Init ->
@@ -120,10 +126,14 @@ handleQuery (KeyboardDown ev next) = do
   state <- H.get
   case state.state of
     Idle game -> do
-      let { result, actions } = (keyToAction (KE.key ev)) game
-      foldM processAction (state { state = Idle result }) actions >>= H.put
+      idleKeyAct (KE.key ev) game
       pure (Just next)
-    _ ->
+    UseItem game -> do
+      useItemKeyAct (KE.key ev) game
+      pure (Just next)
+    Dead _ ->
+      pure (Just next)
+    Init ->
       pure (Just next)
 
 processAction :: forall m. Bind m => MonadAff m => State -> A.Action -> m State
@@ -133,20 +143,35 @@ processAction state = case _ of
   A.Die game -> do
       pure state { state = Dead game }
 
-keyToAction :: String -> (Game -> ActionResult Game)
-keyToAction = case _ of
-  "y" -> move NW
-  "u" -> move NE
-  "b" -> move SW
-  "n" -> move SE
-  "h" -> move W
-  "j" -> move S
-  "k" -> move N
-  "l" -> move E
-  "ArrowLeft" -> move W
-  "ArrowDown" -> move S
-  "ArrowUp" -> move N
-  "ArrowRight" -> move E
-  "," -> pickUp
-  "g" -> pickUp
-  _ -> inactive
+action :: (Game -> ActionResult Game) -> Game -> H.HalogenM State Action () Message Aff Unit
+action f game = do
+  state <- H.get
+  foldM processAction (state { state = Idle result }) actions >>= H.put
+
+  where
+
+  { result, actions } = f game
+
+idleKeyAct :: String -> Game -> H.HalogenM State Action () Message Aff Unit
+idleKeyAct = case _ of
+  "y" -> action $ move NW
+  "u" -> action $ move NE
+  "b" -> action $ move SW
+  "n" -> action $ move SE
+  "h" -> action $ move W
+  "j" -> action $ move S
+  "k" -> action $ move N
+  "l" -> action $ move E
+  "ArrowLeft" -> action $ move W
+  "ArrowDown" -> action $ move S
+  "ArrowUp" -> action $ move N
+  "ArrowRight" -> action $ move E
+  "," -> action pickUp
+  "g" -> action pickUp
+  "i" -> \game -> H.modify_ (_ { state = UseItem game })
+  _ -> action inactive
+
+useItemKeyAct :: String -> Game -> H.HalogenM State Action () Message Aff Unit
+useItemKeyAct key game = case key of
+  "Escape" -> H.modify_ (_ { state = Idle game })
+  _ -> action (inactive) game
