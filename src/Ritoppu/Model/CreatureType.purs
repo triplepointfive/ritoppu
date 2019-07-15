@@ -12,3 +12,6 @@ instance showCreatureType :: Show CreatureType where
   show = case _ of
     RedNagaHatchling -> "Red naga hatchling"
     RedNaga -> "Red naga"
+
+derive instance eqCreatureType :: Eq CreatureType
+derive instance ordCreatureType :: Ord CreatureType

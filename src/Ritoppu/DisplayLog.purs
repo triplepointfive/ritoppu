@@ -8,7 +8,7 @@ import Halogen as H
 import Halogen.HTML as HH
 import Halogen.HTML.Properties as HP
 import Ritoppu.Action (Message(..))
-import Ritoppu.Model (creatureName)
+import Ritoppu.Model (creatureName, itemName)
 
 div :: forall p i. String -> Array (HH.HTML p i) -> HH.HTML p i
 div classes = HH.div [ HP.class_ (H.ClassName classes) ]
@@ -43,6 +43,10 @@ buildMessage msg = div "log-message" $ case msg of
       ]
   AttackKillM creature
     -> [ info "You smashed ", critical (creatureName creature) ]
+  PickedUpItem item
+    -> [ info "You picked ", focus (itemName item), info " up" ]
+  NothingToPickUp
+    -> [ debug "You see nothing to pick up" ]
 
 debug :: forall p i. String -> HH.HTML p i
 debug = withStyle "msg -debug"
@@ -55,6 +59,9 @@ warn = withStyle "msg -warn"
 
 info :: forall p i. String -> HH.HTML p i
 info = withStyle "msg -info"
+
+focus :: forall p i. String -> HH.HTML p i
+focus = withStyle "msg -focus"
 
 withStyle :: forall p i. String -> String -> HH.HTML p i
 withStyle classes msg = HH.span [ HP.class_ (H.ClassName classes) ] [ HH.text msg ]

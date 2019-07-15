@@ -11,7 +11,7 @@ import Data.Map as Map
 import Data.Maybe (Maybe(..))
 import Data.Tuple (Tuple(..))
 import Ritoppu.Action (Action(..), ActionResult, Message(..), addAction, inactive, onResult)
-import Ritoppu.Model (Creature, Game, Point, Stage, adjustPoints, anybodyAt, availableToMoveTo, creatureName, damageTo, isNextTo, GameState(..), gameIsOver)
+import Ritoppu.Model (Creature, Game, Point, Stage, adjustPoints, anybodyAt, availableToMoveTo, damageTo, isNextTo, GameState(..), gameIsOver)
 import Ritoppu.Mutation (moveCreature, updateCreature, takeDamage)
 
 -- TODO: Creatures must not to walk on each other

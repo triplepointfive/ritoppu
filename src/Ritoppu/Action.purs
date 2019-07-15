@@ -9,7 +9,7 @@ module Ritoppu.Action
   ) where
 
 import Data.Array ((:))
-import Ritoppu.Model (Creature)
+import Ritoppu.Model (Creature, Item)
 
 data Message
   = DamageYouM Creature Int
@@ -18,6 +18,8 @@ data Message
   | AttackM Creature Int
   | AttackHarmlessM Creature
   | AttackKillM Creature
+  | NothingToPickUp
+  | PickedUpItem Item
 
 data Action
   = LogMessage Message

@@ -6,11 +6,12 @@ module Ritoppu.Mutation.Stage
   , moveCreature
   , updateCreature
   , addItem
+  , removeItem
   ) where
 
 import Prelude
 
-import Data.Array (cons)
+import Data.Array (cons, delete)
 import Data.Map as Map
 import Data.Maybe (Maybe(..), maybe)
 import Ritoppu.Model (Creature, Item, Point, Stage, Tile, availableToMoveTo)
@@ -27,6 +28,18 @@ updateFov stage = stage
 addItem :: Point -> Item -> Stage -> Stage
 addItem pos item stage
   = stage { items = Map.alter (Just <<< maybe [item] (cons item)) pos stage.items }
+
+removeItem :: Point -> Item -> Stage -> Stage
+removeItem pos item stage
+  = stage { items = Map.alter removeItemInCell pos stage.items }
+
+  where
+
+  removeItemInCell = case _ of
+    Nothing -> Nothing
+    Just xs -> case delete item xs of
+      [] -> Nothing
+      ys -> Just ys
 
 addCreature :: Point -> Creature -> Stage -> Stage
 addCreature pos creature stage =

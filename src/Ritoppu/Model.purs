@@ -6,6 +6,7 @@ module Ritoppu.Model
   , module Ritoppu.Model.CreatureRepository
   , module Ritoppu.Model.CreatureType
   , module Ritoppu.Model.Game
+  , module Ritoppu.Model.Inventory
   , module Ritoppu.Model.Player
   , module Ritoppu.Model.Point
   , module Ritoppu.Model.Rect
@@ -19,8 +20,9 @@ import Ritoppu.Model.CreatureRepository (CreatureRepository)
 import Ritoppu.Model.CreatureType (CreatureType(..))
 import Ritoppu.Model.Direction (Direction(..), directionDelta)
 import Ritoppu.Model.FovMask (FovMask, isVisibleTile, isSeenTile)
-import Ritoppu.Model.Item (Item(..), newCorpse)
 import Ritoppu.Model.Game (Game, GameState(..), gameIsOver)
+import Ritoppu.Model.Inventory (Inventory)
+import Ritoppu.Model.Item (Item(..), newCorpse, itemName)
 import Ritoppu.Model.Player (Player)
 import Ritoppu.Model.Point (Point, adjustPoints, isNextTo)
 import Ritoppu.Model.Rect (Rect, center, fillRect, innerRect, intersect, outerRect)

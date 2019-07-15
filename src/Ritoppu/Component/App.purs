@@ -5,9 +5,11 @@ module Ritoppu.Component.App
 
 import Prelude hiding (div)
 
-import Data.Array ((:), take)
+import Data.Array (concatMap, take, (:))
 import Data.Foldable (foldM)
+import Data.Map as Map
 import Data.Maybe (Maybe(..))
+import Data.Tuple (Tuple(..))
 import Effect.Aff (Aff)
 import Effect.Aff.Class (class MonadAff)
 import Halogen as H
@@ -16,10 +18,11 @@ import Halogen.HTML.Properties as HP
 import Ritoppu.Action (ActionResult, inactive)
 import Ritoppu.Action as A
 import Ritoppu.Action.Move (move)
+import Ritoppu.Action.PickUp (pickUp)
 import Ritoppu.Display (build)
 import Ritoppu.DisplayLog (loggerBlock)
 import Ritoppu.DungeonGenerator (generator)
-import Ritoppu.Model (Direction(..), Game, GameState(..), gameIsOver)
+import Ritoppu.Model (Direction(..), Game, GameState(..), gameIsOver, itemName)
 import Ritoppu.Mutation (updateFov)
 import Ritoppu.Random (runGenerator, randomSeed)
 import Web.UIEvent.KeyboardEvent (KeyboardEvent)
@@ -80,7 +83,21 @@ sidebar game =
             , HH.dt [] [ HH.text (show game.stage.player.stats.hp <> " / " <> show game.stage.player.stats.maxHp) ]
             ]
         ]
+    , HH.text "Inventory:"
+    , div "stats"
+        [ HH.dl [] (inventoryItems game)
+        ]
     ]
+
+inventoryItems :: forall p i. Game -> Array (HH.HTML p i)
+inventoryItems game =
+  concatMap
+    (\(Tuple item count) ->
+      [ HH.dd [] [ HH.text (itemName item) ]
+      , HH.dt [] [ HH.text (show count) ]
+      ]
+    )
+  $ Map.toUnfoldable game.stage.player.inventory
 
 handleAction :: forall o. Action -> H.HalogenM State Action () o Aff Unit
 handleAction = case _ of
@@ -125,4 +142,6 @@ keyToAction = case _ of
   "ArrowDown" -> move S
   "ArrowUp" -> move N
   "ArrowRight" -> move E
+  "," -> pickUp
+  "g" -> pickUp
   _ -> inactive
