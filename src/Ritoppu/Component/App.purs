@@ -8,7 +8,9 @@ import Prelude hiding (div)
 import Data.Array (concatMap, take, (:))
 import Data.Foldable (foldM)
 import Data.Map as Map
+import Data.Map as Map
 import Data.Maybe (Maybe(..))
+import Data.String.CodeUnits (singleton)
 import Data.Tuple (Tuple(..))
 import Effect.Aff (Aff)
 import Effect.Aff.Class (class MonadAff)
@@ -22,7 +24,7 @@ import Ritoppu.Action.PickUp (pickUp)
 import Ritoppu.Display (build)
 import Ritoppu.DisplayLog (loggerBlock)
 import Ritoppu.DungeonGenerator (generator)
-import Ritoppu.Model (Direction(..), Game, itemName)
+import Ritoppu.Model (Direction(..), Game, inventoryPositions, itemName)
 import Ritoppu.Mutation (updateFov)
 import Ritoppu.Random (runGenerator, randomSeed)
 import Web.UIEvent.KeyboardEvent (KeyboardEvent)
@@ -78,7 +80,7 @@ render app = div "app-container" case app.state of
   UseItem game ->
     [ gameInterface game
     , loggerBlock app.logs
-    , sidebar game
+    , sidebar' game
     ]
   Init ->
     [ HH.text "Loading..."
@@ -86,6 +88,34 @@ render app = div "app-container" case app.state of
 
 gameInterface :: forall p i. Game -> HH.HTML p i
 gameInterface game = div "level-map" $ map (div "row") (build game.stage)
+
+-- TODO: Shame on me
+sidebar' :: forall p i. Game -> HH.HTML p i
+sidebar' game =
+  div "panel-sidebar"
+    [ div "stats"
+        [ HH.dl []
+            [ HH.dd [] [ HH.text "HP" ]
+            , HH.dt [] [ HH.text (show game.stage.player.stats.hp <> " / " <> show game.stage.player.stats.maxHp) ]
+            ]
+        ]
+    , HH.text "Inventory:"
+    , div "stats"
+        [ HH.dl [] (inventoryItems' game)
+        ]
+    ]
+
+  where
+
+  inventoryItems' :: forall p i. Game -> Array (HH.HTML p i)
+  inventoryItems' game =
+    concatMap
+      (\(Tuple letter (Tuple item count)) ->
+        [ HH.dd [] [ HH.text (letter <> ": " <> itemName item) ]
+        , HH.dt [] [ HH.text (show count) ]
+        ]
+      )
+    $ Map.toUnfoldable $ inventoryPositions game.stage.player.inventory
 
 sidebar :: forall p i. Game -> HH.HTML p i
 sidebar game =
@@ -168,10 +198,18 @@ idleKeyAct = case _ of
   "ArrowRight" -> action $ move E
   "," -> action pickUp
   "g" -> action pickUp
-  "i" -> \game -> H.modify_ (_ { state = UseItem game })
+  "a" -> \game -> H.modify_ (_ { state = UseItem game })
   _ -> action inactive
 
 useItemKeyAct :: String -> Game -> H.HalogenM State Action () Message Aff Unit
-useItemKeyAct key game = case key of
-  "Escape" -> H.modify_ (_ { state = Idle game })
-  _ -> action (inactive) game
+useItemKeyAct key game = case { key: key, item: foundItem } of
+  { key: "Escape" } -> H.modify_ (_ { state = Idle game })
+  { key: _, item: Nothing } -> do
+      state <- H.get
+      processAction state (A.LogMessage A.NothingToUse) >>= H.put
+      H.modify_ (_ { state = Idle game })
+  _ -> pure unit
+
+  where
+
+  foundItem = Map.lookup key (inventoryPositions game.stage.player.inventory)

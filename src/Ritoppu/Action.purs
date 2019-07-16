@@ -21,6 +21,7 @@ data Message
   | AttackKillM Creature
   | NothingToPickUp
   | PickedUpItem Item
+  | NothingToUse
 
 data Action
   = LogMessage Message
