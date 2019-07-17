@@ -17,7 +17,7 @@ import Ritoppu.Model.Item (Item(..))
 type Inventory = Map.Map Item Int
 
 initInventory :: Inventory
-initInventory = Map.fromFoldable [Tuple HealingPotion 3]
+initInventory = Map.fromFoldable [Tuple HealingPotion 3, Tuple LightningScroll 5]
 
 -- EXTRA: Limit per page
 inventoryPositions :: Inventory -> Map.Map String (Tuple Item Int)

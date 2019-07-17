@@ -26,6 +26,7 @@ data Message
   | DoNotKnowHowToUse
   | Healed
   | FullHealth
+  | LightningScrollHitYourself
 
 data Action
   = LogMessage Message

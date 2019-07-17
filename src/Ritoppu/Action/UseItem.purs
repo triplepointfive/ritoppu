@@ -4,14 +4,20 @@ module Ritoppu.Action.UseItem
 
 import Prelude
 
-import Ritoppu.Action (Action(..), ActionResult, Message(..), addAction, withAction)
+import Data.Array (filter)
+import Data.Foldable (minimumBy)
+import Data.Map as Map
+import Data.Maybe (Maybe(..))
+import Data.Tuple (Tuple(..))
+import Ritoppu.Action (Action(..), ActionResult, Message(..), addAction, die, withAction)
 import Ritoppu.Action.CreatureAct (creatureAct)
-import Ritoppu.Model (Game, Item(..), isFullHealth)
-import Ritoppu.Mutation (heal, removeItemFromInventory)
+import Ritoppu.Model (Creature, Game, Item(..), Point, doubleDistanceBetween, isFullHealth, newCorpse)
+import Ritoppu.Mutation (addItem, heal, removeCreature, removeItemFromInventory, takeDamage, updateCreature, hitPlayer)
 
 useItem :: Item -> Game -> ActionResult Game
 useItem = case _ of
   HealingPotion -> useHealingPotion
+  LightningScroll -> useLightningScroll
   Corpse _ -> flip withAction (LogMessage DoNotKnowHowToUse)
 
 useHealingPotion :: Game -> ActionResult Game
@@ -31,3 +37,34 @@ playerTurn game = game { stage { player { turn = game.stage.player.turn + 5 } } 
 removeItem :: Item -> Game -> Game
 removeItem item game =
   game { stage { player { inventory = removeItemFromInventory item game.stage.player.inventory } } }
+
+useLightningScroll :: Game -> ActionResult Game
+useLightningScroll game = case target of
+  Just (Tuple pos creature) | damage >= creature.stats.hp ->
+    addAction (LogMessage (AttackKillM creature))
+      $ creatureAct $ actedGame { stage = addItem pos (newCorpse creature) $ removeCreature pos actedGame.stage }
+  Just (Tuple pos creature) ->
+    addAction (LogMessage (AttackM creature damage))
+      $ creatureAct $ actedGame
+        { stage = updateCreature pos (\c -> c { stats = takeDamage damage c.stats }) game.stage
+        }
+  Nothing | damage >= game.stage.player.stats.hp ->
+    die $ withAction (hitPlayer damage actedGame) (LogMessage LightningScrollHitYourself)
+  Nothing ->
+    addAction
+      (LogMessage LightningScrollHitYourself)
+      $ creatureAct
+      $ hitPlayer damage actedGame
+
+  where
+
+  actedGame = removeItem LightningScroll $ playerTurn game
+
+  pPos = game.stage.player.pos
+
+  target :: Maybe (Tuple Point Creature)
+  target
+    = minimumBy (\(Tuple p1 _) (Tuple p2 _) -> doubleDistanceBetween p1 pPos `compare` doubleDistanceBetween p2 pPos)
+    $ filter (\(Tuple p _) -> doubleDistanceBetween p pPos <= 25) -- TODO: Magic number
+    $ (Map.toUnfoldable game.stage.creatures :: Array (Tuple Point Creature))
+  damage = 20

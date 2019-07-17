@@ -8,7 +8,7 @@ module Ritoppu.Mutation
   ) where
 
 import Ritoppu.Mutation.FovMask (rebuildFov)
-import Ritoppu.Mutation.Game (onStage)
+import Ritoppu.Mutation.Game (onStage, hitPlayer)
 import Ritoppu.Mutation.Inventory (addItemToInventory, removeItemFromInventory)
 import Ritoppu.Mutation.Point (moveTo)
 import Ritoppu.Mutation.Stage (addItem, setTile, updateFov, addCreature, removeCreature, moveCreature, updateCreature, removeItem)

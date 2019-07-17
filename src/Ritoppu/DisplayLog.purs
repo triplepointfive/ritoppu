@@ -57,6 +57,8 @@ buildMessage msg = div "log-message" $ case msg of
     -> [ info "Your wounds start to feel better!" ]
   DoNotKnowHowToUse
     -> [ debug "You don't know how to use it" ]
+  LightningScrollHitYourself
+    -> [ critical "A lighting hits you" ]
 
 debug :: forall p i. String -> HH.HTML p i
 debug = withStyle "msg -debug"

@@ -31,7 +31,6 @@ attack pos creature game = case damage of
     addAction (LogMessage (AttackHarmlessM creature))
       $ creatureAct $ playerTurn game
   _ | damage >= creature.stats.hp ->
-    -- TODO: Leave corpse
     addAction (LogMessage (AttackKillM creature))
       $ creatureAct $ playerTurn game { stage
           = addItem pos (newCorpse creature)

@@ -4,7 +4,7 @@ module Ritoppu.DungeonGenerator
 
 import Prelude
 
-import Data.Array (concatMap, head, (..), (:), nub, index)
+import Data.Array (concatMap, head, index, nub, singleton, (..), (:))
 import Data.Foldable (any, foldl, foldr, length)
 import Data.Map as Map
 import Data.Maybe (Maybe(..), fromMaybe)
@@ -15,14 +15,14 @@ import Ritoppu.Model (CreatureRepository, Item(..), Point, Rect, Stage, Tile(..)
 import Ritoppu.Model.CreatureType (CreatureType(..))
 import Ritoppu.Model.Tile (passibleThrough)
 import Ritoppu.Mutation (setTile)
-import Ritoppu.Random (RandomGenerator, newCreature, newInt, newPoint, newRect)
+import Ritoppu.Random (RandomGenerator, newCreature, newInt, newItem, newPoint, newRect)
 import Ritoppu.Utils (nTimes)
 
 maxMonstersPerRoom :: Int
 maxMonstersPerRoom = 5
 
 maxItemsPerRoom :: Int
-maxItemsPerRoom = 2
+maxItemsPerRoom = 5
 
 creaturesRepository :: CreatureRepository
 creaturesRepository v
@@ -36,6 +36,12 @@ creaturesRepository v
       , stats: { maxHp: 16, hp: 16, defense: 1, power: 4 }
       , turn: 0
       }
+
+-- TODO: Reuse CreatureRepository
+itemsRepository :: Int -> Item
+itemsRepository v
+  | v < 70 = HealingPotion
+  | otherwise = LightningScroll
 
 generator :: Point -> RandomGenerator Stage
 generator size = do
@@ -86,7 +92,7 @@ generateItems stage = do
   poses <- nTimes monstersCount (newInt 0 (length availablePoses))
 
   itemsList <- for (nub poses) $ \x -> do
-    item <- pure [HealingPotion]
+    item <- singleton <$> newItem itemsRepository
     pure $ Tuple (fromMaybe { x: 0, y: 0 } (index availablePoses x)) item
 
   pure stage { items = Map.fromFoldable itemsList }
