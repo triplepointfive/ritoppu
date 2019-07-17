@@ -47,7 +47,9 @@ buildMessage msg = div "log-message" $ case msg of
     -> [ info "You picked ", focus (itemName item), info " up" ]
   NothingToPickUp
     -> [ debug "You see nothing to pick up" ]
-  NothingToUse
+  DropItem item
+    -> [ info "You dropped ", focus (itemName item) ]
+  DoNotHave
     -> [ debug "You don't have this" ]
 
 debug :: forall p i. String -> HH.HTML p i

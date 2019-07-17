@@ -8,9 +8,7 @@ import Prelude hiding (div)
 import Data.Array (concatMap, take, (:))
 import Data.Foldable (foldM)
 import Data.Map as Map
-import Data.Map as Map
 import Data.Maybe (Maybe(..))
-import Data.String.CodeUnits (singleton)
 import Data.Tuple (Tuple(..))
 import Effect.Aff (Aff)
 import Effect.Aff.Class (class MonadAff)
@@ -19,12 +17,14 @@ import Halogen.HTML as HH
 import Halogen.HTML.Properties as HP
 import Ritoppu.Action (ActionResult, inactive)
 import Ritoppu.Action as A
+import Ritoppu.Action.DropItem (dropItem)
 import Ritoppu.Action.Move (move)
 import Ritoppu.Action.PickUp (pickUp)
+import Ritoppu.Action.UseItem (useItem)
 import Ritoppu.Display (build)
 import Ritoppu.DisplayLog (loggerBlock)
 import Ritoppu.DungeonGenerator (generator)
-import Ritoppu.Model (Direction(..), Game, inventoryPositions, itemName)
+import Ritoppu.Model (Direction(..), Game, Item, inventoryPositions, itemName)
 import Ritoppu.Mutation (updateFov)
 import Ritoppu.Random (runGenerator, randomSeed)
 import Web.UIEvent.KeyboardEvent (KeyboardEvent)
@@ -42,7 +42,8 @@ type State = { state :: GameState, logs :: Array A.Message }
 data GameState
   = Idle Game
   | Dead Game
-  | UseItem Game
+  | UseItem Game -- EXTRA: Move numered inventory here?
+  | DropItem Game
   | Init
 
 div :: forall p i. String -> Array (HH.HTML p i) -> HH.HTML p i
@@ -82,6 +83,11 @@ render app = div "app-container" case app.state of
     , loggerBlock app.logs
     , sidebar' game
     ]
+  DropItem game ->
+    [ gameInterface game
+    , loggerBlock app.logs
+    , sidebar' game
+    ]
   Init ->
     [ HH.text "Loading..."
     ]
@@ -101,14 +107,13 @@ sidebar' game =
         ]
     , HH.text "Inventory:"
     , div "stats"
-        [ HH.dl [] (inventoryItems' game)
+        [ HH.dl [] inventoryItems'
         ]
     ]
 
   where
 
-  inventoryItems' :: forall p i. Game -> Array (HH.HTML p i)
-  inventoryItems' game =
+  inventoryItems' =
     concatMap
       (\(Tuple letter (Tuple item count)) ->
         [ HH.dd [] [ HH.text (letter <> ": " <> itemName item) ]
@@ -159,7 +164,10 @@ handleQuery (KeyboardDown ev next) = do
       idleKeyAct (KE.key ev) game
       pure (Just next)
     UseItem game -> do
-      useItemKeyAct (KE.key ev) game
+      withItemKeyAct (KE.key ev) useItem game
+      pure (Just next)
+    DropItem game -> do
+      withItemKeyAct (KE.key ev) dropItem game
       pure (Just next)
     Dead _ ->
       pure (Just next)
@@ -199,16 +207,18 @@ idleKeyAct = case _ of
   "," -> action pickUp
   "g" -> action pickUp
   "a" -> \game -> H.modify_ (_ { state = UseItem game })
+  "d" -> \game -> H.modify_ (_ { state = DropItem game })
   _ -> action inactive
 
-useItemKeyAct :: String -> Game -> H.HalogenM State Action () Message Aff Unit
-useItemKeyAct key game = case { key: key, item: foundItem } of
+withItemKeyAct :: String -> (Item -> Game -> ActionResult Game) -> Game -> H.HalogenM State Action () Message Aff Unit
+withItemKeyAct key f game = case { key: key, item: foundItem } of
   { key: "Escape" } -> H.modify_ (_ { state = Idle game })
-  { key: _, item: Nothing } -> do
+  { item: Nothing } -> do
       state <- H.get
-      processAction state (A.LogMessage A.NothingToUse) >>= H.put
+      processAction state (A.LogMessage A.DoNotHave) >>= H.put
       H.modify_ (_ { state = Idle game })
-  _ -> pure unit
+  { item: Just (Tuple item _) } -> do
+      action (f item) game
 
   where
 
