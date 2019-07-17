@@ -15,7 +15,7 @@ import Effect.Aff.Class (class MonadAff)
 import Halogen as H
 import Halogen.HTML as HH
 import Halogen.HTML.Properties as HP
-import Ritoppu.Action (ActionResult, inactive)
+import Ritoppu.Action (ActionResult, inactive, withAction)
 import Ritoppu.Action as A
 import Ritoppu.Action.DropItem (dropItem)
 import Ritoppu.Action.Move (move)
@@ -24,7 +24,7 @@ import Ritoppu.Action.UseItem (useItem)
 import Ritoppu.Display (build)
 import Ritoppu.DisplayLog (loggerBlock)
 import Ritoppu.DungeonGenerator (generator)
-import Ritoppu.Model (Direction(..), Game, Item, inventoryPositions, itemName)
+import Ritoppu.Model (Direction(..), Game, Item, Point, inventoryPositions, itemName)
 import Ritoppu.Mutation (updateFov)
 import Ritoppu.Random (runGenerator, randomSeed)
 import Web.UIEvent.KeyboardEvent (KeyboardEvent)
@@ -36,6 +36,7 @@ data Action
 type Message = Void
 data Query a
   = KeyboardDown KeyboardEvent a
+  | MouseClick Point a
 
 type State = { state :: GameState, logs :: Array A.Message }
 
@@ -44,6 +45,7 @@ data GameState
   | Dead Game
   | UseItem Game -- EXTRA: Move numered inventory here?
   | DropItem Game
+  | Targeting Game (Point -> Game -> ActionResult Game)
   | Init
 
 div :: forall p i. String -> Array (HH.HTML p i) -> HH.HTML p i
@@ -77,6 +79,11 @@ render app = div "app-container" case app.state of
     , loggerBlock app.logs
     , div "screen -dead" [ HH.text "YOU DIED" ]
     , sidebar game
+    ]
+  Targeting game _ ->
+    [ gameInterface game
+    , loggerBlock app.logs
+    , sidebar' game
     ]
   UseItem game ->
     [ gameInterface game
@@ -151,28 +158,39 @@ handleAction :: forall o. Action -> H.HalogenM State Action () o Aff Unit
 handleAction = case _ of
   InitGame -> do
     seed <- H.liftEffect randomSeed
-    H.modify_ (_ { state = Idle
-        { stage: updateFov $ runGenerator seed (generator { x: 30, y: 30 })
-        } })
+    H.modify_ (_
+      { state = Targeting
+        { stage: updateFov $ runGenerator seed (generator { x: 30, y: 30 }) }
+        (\_ game -> withAction game (A.LogMessage A.LightningScrollHitYourself))
+      })
+    -- H.modify_ (_ { state = Idle
+    --     { stage: updateFov $ runGenerator seed (generator { x: 30, y: 30 })
+    --     } })
     pure unit
 
 handleQuery :: forall a. Query a -> H.HalogenM State Action () Message Aff (Maybe a)
-handleQuery (KeyboardDown ev next) = do
-  state <- H.get
-  case state.state of
-    Idle game -> do
-      idleKeyAct (KE.key ev) game
-      pure (Just next)
-    UseItem game -> do
-      withItemKeyAct (KE.key ev) useItem game
-      pure (Just next)
-    DropItem game -> do
-      withItemKeyAct (KE.key ev) dropItem game
-      pure (Just next)
-    Dead _ ->
-      pure (Just next)
-    Init ->
-      pure (Just next)
+handleQuery = case _ of
+  KeyboardDown ev next -> do
+    state <- H.get
+    case state.state of
+      Idle game -> do
+        idleKeyAct (KE.key ev) game
+        pure (Just next)
+      UseItem game -> do
+        withItemKeyAct (KE.key ev) useItem game
+        pure (Just next)
+      DropItem game -> do
+        withItemKeyAct (KE.key ev) dropItem game
+        pure (Just next)
+      Targeting game _ -> do
+        cancelKeyAct (KE.key ev) game
+        pure (Just next)
+      Dead _ ->
+        pure (Just next)
+      Init ->
+        pure (Just next)
+  MouseClick point next -> do
+    pure (Just next)
 
 processAction :: forall m. Bind m => MonadAff m => State -> A.Action -> m State
 processAction state = case _ of
@@ -209,6 +227,11 @@ idleKeyAct = case _ of
   "a" -> \game -> H.modify_ (_ { state = UseItem game })
   "d" -> \game -> H.modify_ (_ { state = DropItem game })
   _ -> action inactive
+
+cancelKeyAct :: String -> Game -> H.HalogenM State Action () Message Aff Unit
+cancelKeyAct key game = case key of
+  "Escape" -> H.modify_ (_ { state = Idle game })
+  _ -> pure unit
 
 withItemKeyAct :: String -> (Item -> Game -> ActionResult Game) -> Game -> H.HalogenM State Action () Message Aff Unit
 withItemKeyAct key f game = case { key: key, item: foundItem } of

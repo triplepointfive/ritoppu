@@ -38,6 +38,7 @@ removeItem :: Item -> Game -> Game
 removeItem item game =
   game { stage { player { inventory = removeItemFromInventory item game.stage.player.inventory } } }
 
+-- TODO: Better messages
 useLightningScroll :: Game -> ActionResult Game
 useLightningScroll game = case target of
   Just (Tuple pos creature) | damage >= creature.stats.hp ->
