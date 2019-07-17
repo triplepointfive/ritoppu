@@ -23,6 +23,9 @@ data Message
   | PickedUpItem Item
   | DropItem Item
   | DoNotHave
+  | DoNotKnowHowToUse
+  | Healed
+  | FullHealth
 
 data Action
   = LogMessage Message

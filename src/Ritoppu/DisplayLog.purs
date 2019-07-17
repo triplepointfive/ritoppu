@@ -51,6 +51,12 @@ buildMessage msg = div "log-message" $ case msg of
     -> [ info "You dropped ", focus (itemName item) ]
   DoNotHave
     -> [ debug "You don't have this" ]
+  FullHealth
+    -> [ debug "You are already at full health" ]
+  Healed
+    -> [ info "Your wounds start to feel better!" ]
+  DoNotKnowHowToUse
+    -> [ debug "You don't know how to use it" ]
 
 debug :: forall p i. String -> HH.HTML p i
 debug = withStyle "msg -debug"
