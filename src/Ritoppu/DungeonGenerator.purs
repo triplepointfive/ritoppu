@@ -41,6 +41,7 @@ creaturesRepository v
 itemsRepository :: Int -> Item
 itemsRepository v
   | v < 70 = HealingPotion
+  | v < 85 = FireballScroll
   | otherwise = LightningScroll
 
 generator :: Point -> RandomGenerator Stage

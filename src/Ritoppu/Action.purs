@@ -8,12 +8,13 @@ module Ritoppu.Action
   , inactive
   , onResult
   , withAction
+  , target
   ) where
 
 import Prelude
 
 import Data.Array ((:))
-import Ritoppu.Model (Creature, Item, Game)
+import Ritoppu.Model (Creature, Game, Item, Point)
 
 data Message
   = DamageYouM Creature Int
@@ -34,10 +35,12 @@ data Message
   | FireballExplodes Int
   | BurnSelf Int
   | BurnM Creature Int
+  | Targeting String
 
 data Action
   = LogMessage Message
   | Die Game
+  | Target Game (Point -> Game -> ActionResult Game)
 
 type ActionResult a =
   { result :: a
@@ -46,6 +49,9 @@ type ActionResult a =
 
 die :: ActionResult Game -> ActionResult Game
 die { result, actions } = { result, actions: Die result : actions }
+
+target :: (Point -> Game -> ActionResult Game) -> String -> ActionResult Game -> ActionResult Game
+target f msg { result, actions } = { result, actions: Target result f : LogMessage (Targeting msg) : actions }
 
 addAction :: forall a. Action -> ActionResult a -> ActionResult a
 addAction action { result, actions } = { result, actions: action : actions }

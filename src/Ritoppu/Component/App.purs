@@ -208,6 +208,8 @@ processAction state = case _ of
       pure state { logs = take 5 (message : state.logs) }
   A.Die game -> do
       pure state { state = Dead game }
+  A.Target game f -> do
+      pure state { state = Targeting game f }
 
 action :: (Game -> ActionResult Game) -> Game -> H.HalogenM State Action () Message Aff Unit
 action f game = do
@@ -236,7 +238,6 @@ idleKeyAct = case _ of
   "g" -> action pickUp
   "a" -> \game -> H.modify_ (_ { state = UseItem game })
   "d" -> \game -> H.modify_ (_ { state = DropItem game })
-  "t" -> \game -> H.modify_ (_ { state = Targeting game castFireball })
   _ -> action inactive
 
 cancelKeyAct :: String -> Game -> H.HalogenM State Action () Message Aff Unit

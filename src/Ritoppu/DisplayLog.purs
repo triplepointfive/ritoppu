@@ -75,6 +75,8 @@ buildMessage msg = div "log-message" $ case msg of
       , critical (show damage)
       , info " hit points."
       ]
+  Targeting msg
+    -> [ debug msg ]
 
 debug :: forall p i. String -> HH.HTML p i
 debug = withStyle "msg -debug"

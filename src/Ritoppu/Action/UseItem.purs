@@ -9,7 +9,8 @@ import Data.Foldable (minimumBy)
 import Data.Map as Map
 import Data.Maybe (Maybe(..))
 import Data.Tuple (Tuple(..))
-import Ritoppu.Action (Action(..), ActionResult, Message(..), addAction, die, withAction)
+import Ritoppu.Action (Action(..), ActionResult, Message(..), addAction, die, inactive, target, withAction)
+import Ritoppu.Action.CastTargeting (castFireball)
 import Ritoppu.Action.CreatureAct (creatureAct)
 import Ritoppu.Model (Creature, Game, Item(..), Point, doubleDistanceBetween, isFullHealth, newCorpse)
 import Ritoppu.Mutation (addItem, heal, removeCreature, removeItemFromInventory, takeDamage, updateCreature, hitPlayer)
@@ -18,7 +19,7 @@ useItem :: Item -> Game -> ActionResult Game
 useItem = case _ of
   HealingPotion -> useHealingPotion
   LightningScroll -> useLightningScroll
-  FireballScroll -> flip withAction (LogMessage DoNotKnowHowToUse)
+  FireballScroll -> target castFireball "Left-click a target tile for the fireball" <<< inactive
   Corpse _ -> flip withAction (LogMessage DoNotKnowHowToUse)
 
 useHealingPotion :: Game -> ActionResult Game
