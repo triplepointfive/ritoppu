@@ -7,7 +7,7 @@ import Prelude
 import Data.Array (filter, foldr)
 import Data.Map as Map
 import Data.Tuple (Tuple(..))
-import Ritoppu.Action (Action(..), ActionResult, Message(..), addActions, inactive, withAction)
+import Ritoppu.Action (Action(..), ActionResult, Message(..), addActions, withAction)
 import Ritoppu.Action.CreatureAct (creatureAct)
 import Ritoppu.Model (Creature, Game, Item(..), Point, doubleDistanceBetween, isVisibleTile, newCorpse)
 import Ritoppu.Mutation (addItem, hitPlayer, removeCreature, removeItemFromInventory, takeDamage, updateCreature)

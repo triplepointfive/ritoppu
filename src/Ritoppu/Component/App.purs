@@ -16,9 +16,8 @@ import Halogen as H
 import Halogen.HTML as HH
 import Halogen.HTML.Events as HE
 import Halogen.HTML.Properties as HP
-import Ritoppu.Action (ActionResult, inactive, withAction)
+import Ritoppu.Action (ActionResult, inactive)
 import Ritoppu.Action as A
-import Ritoppu.Action.CastTargeting (castFireball)
 import Ritoppu.Action.DropItem (dropItem)
 import Ritoppu.Action.Move (move)
 import Ritoppu.Action.PickUp (pickUp)

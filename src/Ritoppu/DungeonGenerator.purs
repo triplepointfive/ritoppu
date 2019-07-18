@@ -11,9 +11,7 @@ import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Set as Set
 import Data.Traversable (traverse, for)
 import Data.Tuple (Tuple(..))
-import Ritoppu.Model (CreatureRepository, Item(..), Point, Rect, Stage, Tile(..), center, fillRect, initStage, intersect, outerRect)
-import Ritoppu.Model.CreatureType (CreatureType(..))
-import Ritoppu.Model.Tile (passibleThrough)
+import Ritoppu.Model (CreatureType(..), CreatureRepository, Item(..), Point, Rect, Stage, Tile(..), center, fillRect, initStage, intersect, outerRect, AiStrategy(..), passibleThrough)
 import Ritoppu.Mutation (setTile)
 import Ritoppu.Random (RandomGenerator, newCreature, newInt, newItem, newPoint, newRect)
 import Ritoppu.Utils (nTimes)
@@ -30,11 +28,13 @@ creaturesRepository v
       { type: RedNagaHatchling
       , stats: { maxHp: 10, hp: 10, defense: 0, power: 3 }
       , turn: 0
+      , aiStrategy: ConfusedAI 3 BasicAI
       }
   | otherwise =
       { type: RedNaga
       , stats: { maxHp: 16, hp: 16, defense: 1, power: 4 }
       , turn: 0
+      , aiStrategy: ConfusedAI 3 BasicAI
       }
 
 -- TODO: Reuse CreatureRepository

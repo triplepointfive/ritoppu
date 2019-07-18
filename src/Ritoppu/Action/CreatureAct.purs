@@ -11,7 +11,7 @@ import Data.Map as Map
 import Data.Maybe (Maybe(..))
 import Data.Tuple (Tuple(..))
 import Ritoppu.Action (Action(..), ActionResult, Message(..), addAction, inactive, onResult, die)
-import Ritoppu.Model (Creature, Game, Point, Stage, adjustPoints, anybodyAt, availableToMoveTo, damageTo, isNextTo)
+import Ritoppu.Model (Creature, Game, Point, Stage, adjustPoints, anybodyAt, availableToMoveTo, damageTo, isNextTo, AiStrategy(..))
 import Ritoppu.Mutation (moveCreature, updateCreature, takeDamage)
 
 -- TODO: Creatures must not to walk on each other
@@ -32,13 +32,48 @@ actNext result@{ result: game } = case head creaturesToAct of
     (Map.toUnfoldableUnordered game.stage.creatures)
 
 actCreature :: Tuple Point Creature -> ActionResult Game -> ActionResult Game
-actCreature cr@(Tuple pos creature) result
-  | isNextTo pos result.result.stage.player.pos
-    = attack cr result
-  | otherwise = actNext $
+actCreature cr@(Tuple pos creature) result = case creature.aiStrategy of
+  ConfusedAI 0 prevAI
+    ->
+      actNext $
+      onResult
+        (\g -> g { stage = updateCreature pos (\c -> c { aiStrategy = prevAI }) g.stage })
+        result
+  ConfusedAI step prevAI
+    -> case unit of
+      _ | result.result.stage.player.pos == randomDest
+        -> attack cr
+        $ onResult
+            (\g -> g { stage = updateCreature pos (\c -> c { aiStrategy = ConfusedAI (step - 1) prevAI }) g.stage })
+            result
+
+      _ | anybodyAt result.result.stage randomDest -- TODO: Attack in this case
+        -> actNext
+          $ onResult
+              (\g -> g { stage = updateCreature pos (\c -> acted $ c { aiStrategy = ConfusedAI (step - 1) prevAI }) g.stage })
+              result
+
+      _ | availableToMoveTo result.result.stage randomDest -> actNext
+        $ onResult (\game -> game
+          { stage = moveCreature pos randomDest (acted creature { aiStrategy = ConfusedAI (step - 1) prevAI }) game.stage }
+          )
+            result
+
+      _ -> actNext
+          $ onResult
+              (\g -> g { stage = updateCreature pos (\c -> acted $ c { aiStrategy = ConfusedAI (step - 1) prevAI }) g.stage })
+              result
+
+  _ | isNextTo pos result.result.stage.player.pos
+    -> attack cr result
+  _ -> actNext $
     onResult (\game -> game
-      { stage = moveCreature pos (moveForward pos game.stage) (acted creature) game.stage
-      }) result
+      { stage = moveCreature pos (moveForward pos game.stage) (acted creature) game.stage }
+      ) result
+
+  where
+
+  randomDest = pos - { x: 1, y: 0 }
 
 attack :: Tuple Point Creature -> ActionResult Game -> ActionResult Game
 attack (Tuple pos creature) result = case damage of

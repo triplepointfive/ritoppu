@@ -15,7 +15,7 @@ module Ritoppu.Model
   , module Ritoppu.Model.Tile
   ) where
 
-import Ritoppu.Model.Creature (Creature, creatureName)
+import Ritoppu.Model.Creature (Creature, AiStrategy(..), creatureName)
 import Ritoppu.Model.CreatureRepository (CreatureRepository)
 import Ritoppu.Model.CreatureType (CreatureType(..))
 import Ritoppu.Model.Direction (Direction(..), directionDelta)
@@ -28,4 +28,4 @@ import Ritoppu.Model.Point (Point, adjustPoints, isNextTo, doubleDistanceBetween
 import Ritoppu.Model.Rect (Rect, center, fillRect, innerRect, intersect, outerRect)
 import Ritoppu.Model.Stage (Stage, creatureAt, playerAt, tileAt, availableToMoveTo, initStage, anybodyAt, itemAt)
 import Ritoppu.Model.Stats (Stats, damageTo, isFullHealth)
-import Ritoppu.Model.Tile (Tile(..))
+import Ritoppu.Model.Tile (Tile(..), passibleThrough)
