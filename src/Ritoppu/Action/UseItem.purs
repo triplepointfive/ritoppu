@@ -18,6 +18,7 @@ useItem :: Item -> Game -> ActionResult Game
 useItem = case _ of
   HealingPotion -> useHealingPotion
   LightningScroll -> useLightningScroll
+  FireballScroll -> flip withAction (LogMessage DoNotKnowHowToUse)
   Corpse _ -> flip withAction (LogMessage DoNotKnowHowToUse)
 
 useHealingPotion :: Game -> ActionResult Game

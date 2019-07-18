@@ -3,11 +3,14 @@ module Ritoppu.Action
   , ActionResult
   , Message(..)
   , addAction
-  , inactive
-  , withAction
-  , onResult
+  , addActions
   , die
+  , inactive
+  , onResult
+  , withAction
   ) where
+
+import Prelude
 
 import Data.Array ((:))
 import Ritoppu.Model (Creature, Item, Game)
@@ -27,6 +30,10 @@ data Message
   | Healed
   | FullHealth
   | LightningScrollHitYourself
+  | TargetingOutOfFov
+  | FireballExplodes Int
+  | BurnSelf Int
+  | BurnM Creature Int
 
 data Action
   = LogMessage Message
@@ -42,6 +49,9 @@ die { result, actions } = { result, actions: Die result : actions }
 
 addAction :: forall a. Action -> ActionResult a -> ActionResult a
 addAction action { result, actions } = { result, actions: action : actions }
+
+addActions :: forall a. Array Action -> ActionResult a -> ActionResult a
+addActions moreActions { result, actions } = { result, actions: moreActions <> actions }
 
 inactive :: forall a. a -> ActionResult a
 inactive result = { result, actions: [] }

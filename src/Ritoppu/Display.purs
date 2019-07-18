@@ -68,3 +68,4 @@ itemClass = case _ of
   Corpse creature -> "creature -corpse " <> creatureClass creature
   HealingPotion -> "item -healing_potion"
   LightningScroll -> "item -lightning_scroll"
+  FireballScroll -> "item -fireball_scroll"

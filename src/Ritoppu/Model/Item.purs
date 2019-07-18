@@ -13,6 +13,7 @@ data Item
   = Corpse CreatureType
   | HealingPotion
   | LightningScroll
+  | FireballScroll
 
 newCorpse :: Creature -> Item
 newCorpse creature = Corpse creature.type
@@ -22,6 +23,7 @@ itemName = case _ of
   Corpse creature -> "Corpse of " <> show creature -- EXTRA: Use creature name here
   HealingPotion -> "Healing potion"
   LightningScroll -> "Lightning Scroll"
+  FireballScroll -> "Fireball Scroll"
 
 derive instance eqItem :: Eq Item
 derive instance ordItem :: Ord Item

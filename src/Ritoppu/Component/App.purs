@@ -18,6 +18,7 @@ import Halogen.HTML.Events as HE
 import Halogen.HTML.Properties as HP
 import Ritoppu.Action (ActionResult, inactive, withAction)
 import Ritoppu.Action as A
+import Ritoppu.Action.CastTargeting (castFireball)
 import Ritoppu.Action.DropItem (dropItem)
 import Ritoppu.Action.Move (move)
 import Ritoppu.Action.PickUp (pickUp)
@@ -162,14 +163,14 @@ handleAction :: Action -> H.HalogenM State Action () Message Aff Unit
 handleAction = case _ of
   InitGame -> do
     seed <- H.liftEffect randomSeed
-    H.modify_ (_
-      { state = Targeting
-        { stage: updateFov $ runGenerator seed (generator { x: 30, y: 30 }) }
-        (\_ game -> withAction game (A.LogMessage A.LightningScrollHitYourself))
-      })
-    -- H.modify_ (_ { state = Idle
-    --     { stage: updateFov $ runGenerator seed (generator { x: 30, y: 30 })
-    --     } })
+    -- H.modify_ (_
+    --   { state = Targeting
+    --     { stage: updateFov $ runGenerator seed (generator { x: 30, y: 30 }) }
+    --     castFireball
+    --   })
+    H.modify_ (_ { state = Idle
+        { stage: updateFov $ runGenerator seed (generator { x: 30, y: 30 })
+        } })
     pure unit
   MouseClick point -> do
     { state } <- H.get
@@ -235,6 +236,7 @@ idleKeyAct = case _ of
   "g" -> action pickUp
   "a" -> \game -> H.modify_ (_ { state = UseItem game })
   "d" -> \game -> H.modify_ (_ { state = DropItem game })
+  "t" -> \game -> H.modify_ (_ { state = Targeting game castFireball })
   _ -> action inactive
 
 cancelKeyAct :: String -> Game -> H.HalogenM State Action () Message Aff Unit

@@ -59,6 +59,22 @@ buildMessage msg = div "log-message" $ case msg of
     -> [ debug "You don't know how to use it" ]
   LightningScrollHitYourself
     -> [ critical "A lighting hits you" ]
+  TargetingOutOfFov
+    -> [ debug "You cannot target a tile outside your field of view." ]
+  FireballExplodes r
+    -> [ info "The fireball explodes, burning everything within ", warn (show r), info " tiles!" ]
+  BurnSelf damage
+    -> [ info "You got burned for "
+      , critical (show damage)
+      , info " hit points."
+      ]
+  BurnM creature damage
+    -> [ info "The  "
+      , warn (creatureName creature)
+      , info " gets burned for "
+      , critical (show damage)
+      , info " hit points."
+      ]
 
 debug :: forall p i. String -> HH.HTML p i
 debug = withStyle "msg -debug"
