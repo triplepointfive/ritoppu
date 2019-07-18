@@ -1,10 +1,10 @@
 module Ritoppu.Display
-  ( DisplayTile(..)
-  , build
+  ( build
   ) where
 
 import Prelude hiding (div)
 
+import DOM.HTML.Indexed (HTMLdiv)
 import Data.Array (range)
 import Data.Maybe (Maybe(..))
 import Data.Newtype (wrap)
@@ -12,20 +12,23 @@ import Halogen.HTML as HH
 import Halogen.HTML.Properties as HP
 import Ritoppu.Model (CreatureType(..), Item(..), Point, Stage, Tile(..), creatureAt, creatureName, isSeenTile, isVisibleTile, itemAt, playerAt, tileAt)
 
-type DisplayTile = forall p i. HH.HTML p i
+type TileProps i = Array (HP.IProp HTMLdiv i)
 
 div :: forall p i. String -> Array (HH.HTML p i) -> HH.HTML p i
 div classes = HH.div [ HP.class_ (wrap classes) ]
 
-build :: forall p i. Stage -> Array (Array (HH.HTML p i))
-build stage = map
+div_ :: forall p i. TileProps i -> String -> Array (HH.HTML p i) -> HH.HTML p i
+div_ props classes = HH.div (props <> [ HP.class_ (wrap classes) ])
+
+build :: forall p i. (Point -> TileProps i) -> Stage -> Array (Array (HH.HTML p i))
+build props stage = map
   (\y -> map
-      (\x -> buildElem stage { x, y })
+      (\x -> buildElem props stage { x, y })
       (range 0 stage.size.x))
   (range 0 stage.size.y)
 
-buildElem :: Stage -> Point -> DisplayTile
-buildElem stage pos = case { creature: creatureAt stage pos, item: itemAt stage pos } of -- EXTRA: Speed it up
+buildElem :: forall p i. (Point -> TileProps i) -> Stage -> Point -> HH.HTML p i
+buildElem props stage pos = case { creature: creatureAt stage pos, item: itemAt stage pos } of -- EXTRA: Speed it up
   _ | not (isSeenTile stage.fovMask pos)
       -> div "tile -nothing" []
   _ | not (isVisibleTile stage.fovMask pos)
@@ -50,10 +53,9 @@ buildElem stage pos = case { creature: creatureAt stage pos, item: itemAt stage 
 
   tile = tileAt stage pos
 
-  displayTile :: forall p i. String -> Tile -> Array (HH.HTML p i) -> HH.HTML p i
   displayTile var = case _ of
-    Floor -> div ("tile -floor" <> var)
-    Wall -> div ("tile -wall" <> var)
+    Floor -> div_ (props pos) ("tile -floor" <> var)
+    Wall -> div_ (props pos) ("tile -wall" <> var)
 
 creatureClass :: CreatureType -> String
 creatureClass = case _ of

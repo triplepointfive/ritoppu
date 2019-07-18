@@ -14,6 +14,7 @@ import Effect.Aff (Aff)
 import Effect.Aff.Class (class MonadAff)
 import Halogen as H
 import Halogen.HTML as HH
+import Halogen.HTML.Events as HE
 import Halogen.HTML.Properties as HP
 import Ritoppu.Action (ActionResult, inactive, withAction)
 import Ritoppu.Action as A
@@ -32,11 +33,11 @@ import Web.UIEvent.KeyboardEvent as KE
 
 data Action
   = InitGame
+  | MouseClick Point
 
 type Message = Void
 data Query a
   = KeyboardDown KeyboardEvent a
-  | MouseClick Point a
 
 type State = { state :: GameState, logs :: Array A.Message }
 
@@ -67,7 +68,7 @@ component =
 initialState :: State
 initialState = { state: Init, logs: [] }
 
-render :: forall p i. State -> HH.HTML p i
+render :: forall m. State -> HH.ComponentHTML Action () m
 render app = div "app-container" case app.state of
   Idle game ->
     [ gameInterface game
@@ -80,8 +81,11 @@ render app = div "app-container" case app.state of
     , div "screen -dead" [ HH.text "YOU DIED" ]
     , sidebar game
     ]
-  Targeting game _ ->
-    [ gameInterface game
+  Targeting game f ->
+    [ div "level-map"
+      $ map
+          (div "row")
+          (build (\p -> [ HE.onClick (\_ -> Just (MouseClick p)) ]) game.stage)
     , loggerBlock app.logs
     , sidebar' game
     ]
@@ -100,7 +104,7 @@ render app = div "app-container" case app.state of
     ]
 
 gameInterface :: forall p i. Game -> HH.HTML p i
-gameInterface game = div "level-map" $ map (div "row") (build game.stage)
+gameInterface game = div "level-map" $ map (div "row") (build (const []) game.stage)
 
 -- TODO: Shame on me
 sidebar' :: forall p i. Game -> HH.HTML p i
@@ -154,7 +158,7 @@ inventoryItems game =
     )
   $ Map.toUnfoldable game.stage.player.inventory
 
-handleAction :: forall o. Action -> H.HalogenM State Action () o Aff Unit
+handleAction :: Action -> H.HalogenM State Action () Message Aff Unit
 handleAction = case _ of
   InitGame -> do
     seed <- H.liftEffect randomSeed
@@ -167,6 +171,13 @@ handleAction = case _ of
     --     { stage: updateFov $ runGenerator seed (generator { x: 30, y: 30 })
     --     } })
     pure unit
+  MouseClick point -> do
+    { state } <- H.get
+    case state of
+      Targeting game f -> do
+        action (f point) game
+      _ ->
+        pure unit
 
 handleQuery :: forall a. Query a -> H.HalogenM State Action () Message Aff (Maybe a)
 handleQuery = case _ of
@@ -189,8 +200,6 @@ handleQuery = case _ of
         pure (Just next)
       Init ->
         pure (Just next)
-  MouseClick point next -> do
-    pure (Just next)
 
 processAction :: forall m. Bind m => MonadAff m => State -> A.Action -> m State
 processAction state = case _ of
