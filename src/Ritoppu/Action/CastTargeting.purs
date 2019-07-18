@@ -1,15 +1,17 @@
 module Ritoppu.Action.CastTargeting
   ( castFireball
+  , castConfusion
   ) where
 
 import Prelude
 
 import Data.Array (filter, foldr)
 import Data.Map as Map
+import Data.Maybe (Maybe(..))
 import Data.Tuple (Tuple(..))
-import Ritoppu.Action (Action(..), ActionResult, Message(..), addActions, withAction)
+import Ritoppu.Action (Action(..), ActionResult, Message(..), addAction, addActions, withAction)
 import Ritoppu.Action.CreatureAct (creatureAct)
-import Ritoppu.Model (Creature, Game, Item(..), Point, doubleDistanceBetween, isVisibleTile, newCorpse)
+import Ritoppu.Model (Creature, Game, Item(..), Point, creatureAt, doubleDistanceBetween, isVisibleTile, newCorpse, AiStrategy(..))
 import Ritoppu.Mutation (addItem, hitPlayer, removeCreature, removeItemFromInventory, takeDamage, updateCreature)
 
 castFireball :: Point -> Game -> ActionResult Game
@@ -66,3 +68,15 @@ playerTurn game = game { stage { player { turn = game.stage.player.turn + 5 } } 
 removeItem :: Item -> Game -> Game
 removeItem item game =
   game { stage { player { inventory = removeItemFromInventory item game.stage.player.inventory } } }
+
+-- TODO: creature might be already confused
+castConfusion :: Point -> Game ->ActionResult Game
+castConfusion dest game = case creatureAt game.stage dest of
+  Just creature | isVisibleTile game.stage.fovMask dest
+    -> addAction (LogMessage (CastConfusion creature))
+    $ creatureAct
+      -- TODO: Magic number
+    $ playerTurn
+      game { stage = updateCreature dest (\c -> c { aiStrategy = ConfusedAI 10 creature.aiStrategy }) game.stage }
+  Just _ -> withAction game (LogMessage TargetingOutOfFov)
+  Nothing -> withAction game (LogMessage TargetNoEnemy)

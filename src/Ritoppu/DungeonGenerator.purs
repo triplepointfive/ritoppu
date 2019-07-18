@@ -28,20 +28,21 @@ creaturesRepository v
       { type: RedNagaHatchling
       , stats: { maxHp: 10, hp: 10, defense: 0, power: 3 }
       , turn: 0
-      , aiStrategy: ConfusedAI 3 BasicAI
+      , aiStrategy: BasicAI
       }
   | otherwise =
       { type: RedNaga
       , stats: { maxHp: 16, hp: 16, defense: 1, power: 4 }
       , turn: 0
-      , aiStrategy: ConfusedAI 3 BasicAI
+      , aiStrategy: BasicAI
       }
 
 -- TODO: Reuse CreatureRepository
 itemsRepository :: Int -> Item
 itemsRepository v
   | v < 70 = HealingPotion
-  | v < 85 = FireballScroll
+  | v < 80 = FireballScroll
+  | v < 90 = ConfusionScroll
   | otherwise = LightningScroll
 
 generator :: Point -> RandomGenerator Stage

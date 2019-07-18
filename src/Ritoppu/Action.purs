@@ -36,6 +36,8 @@ data Message
   | BurnSelf Int
   | BurnM Creature Int
   | Targeting String
+  | TargetNoEnemy
+  | CastConfusion Creature
 
 data Action
   = LogMessage Message

@@ -69,3 +69,4 @@ itemClass = case _ of
   HealingPotion -> "item -healing_potion"
   LightningScroll -> "item -lightning_scroll"
   FireballScroll -> "item -fireball_scroll"
+  ConfusionScroll -> "item -confusion_scroll"

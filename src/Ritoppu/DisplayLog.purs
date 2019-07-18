@@ -77,6 +77,15 @@ buildMessage msg = div "log-message" $ case msg of
       ]
   Targeting message
     -> [ debug message ]
+  TargetNoEnemy
+    -> [ debug "There is no targetable enemy at that location." ]
+  CastConfusion creature
+    -> [ info "The eyes of the "
+      , warn (creatureName creature)
+      , info " look vacant, as he starts to stumble around!"
+      ]
+
+
 
 debug :: forall p i. String -> HH.HTML p i
 debug = withStyle "msg -debug"

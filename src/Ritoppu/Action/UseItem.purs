@@ -10,7 +10,7 @@ import Data.Map as Map
 import Data.Maybe (Maybe(..))
 import Data.Tuple (Tuple(..))
 import Ritoppu.Action (Action(..), ActionResult, Message(..), addAction, die, inactive, target, withAction)
-import Ritoppu.Action.CastTargeting (castFireball)
+import Ritoppu.Action.CastTargeting (castFireball, castConfusion)
 import Ritoppu.Action.CreatureAct (creatureAct)
 import Ritoppu.Model (Creature, Game, Item(..), Point, doubleDistanceBetween, isFullHealth, newCorpse)
 import Ritoppu.Mutation (addItem, heal, removeCreature, removeItemFromInventory, takeDamage, updateCreature, hitPlayer)
@@ -20,6 +20,7 @@ useItem = case _ of
   HealingPotion -> useHealingPotion
   LightningScroll -> useLightningScroll
   FireballScroll -> target castFireball "Left-click a target tile for the fireball" <<< inactive
+  ConfusionScroll -> target castConfusion "Left-click an enemy to confuse it" <<< inactive
   Corpse _ -> flip withAction (LogMessage DoNotKnowHowToUse)
 
 useHealingPotion :: Game -> ActionResult Game

@@ -21,6 +21,7 @@ initInventory = Map.fromFoldable
   [ Tuple HealingPotion 3
   , Tuple LightningScroll 5
   , Tuple FireballScroll 2
+  , Tuple ConfusionScroll 3
   ]
 
 -- EXTRA: Limit per page

@@ -73,7 +73,17 @@ actCreature cr@(Tuple pos creature) result = case creature.aiStrategy of
 
   where
 
-  randomDest = pos - { x: 1, y: 0 }
+  randomDest = pos - { x: dx , y: dy }
+
+  dx = case unit of
+    _ | mod pos.y 3 == 0 -> 1
+    _ | mod pos.y 5 == 0 -> -1
+    _ -> 0
+
+  dy = case unit of
+    _ | mod pos.x 3 == 0 -> 1
+    _ | mod pos.x 5 == 0 -> -1
+    _ -> 0
 
 attack :: Tuple Point Creature -> ActionResult Game -> ActionResult Game
 attack (Tuple pos creature) result = case damage of
