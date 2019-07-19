@@ -8,7 +8,7 @@ import Prelude hiding (div)
 import Data.Array (concatMap, take, (:))
 import Data.Foldable (foldM)
 import Data.Map as Map
-import Data.Maybe (Maybe(..))
+import Data.Maybe (Maybe(..), isJust)
 import Data.Tuple (Tuple(..))
 import Effect.Aff (Aff)
 import Effect.Aff.Class (class MonadAff)
@@ -28,8 +28,14 @@ import Ritoppu.DungeonGenerator (generator)
 import Ritoppu.Model (Direction(..), Game, Item, Point, inventoryPositions, itemName)
 import Ritoppu.Mutation (updateFov)
 import Ritoppu.Random (runGenerator, randomSeed)
+import Web.HTML (window)
+import Web.HTML.Window (localStorage)
+import Web.Storage.Storage (setItem, getItem)
 import Web.UIEvent.KeyboardEvent (KeyboardEvent)
 import Web.UIEvent.KeyboardEvent as KE
+
+saveGameStorageKey :: String
+saveGameStorageKey = "savedGame"
 
 data Action
   = InitGame
@@ -47,7 +53,7 @@ data AppScreen
   | UseItem Game -- EXTRA: Move numered inventory here?
   | DropItem Game
   | Targeting Game (Point -> Game -> ActionResult Game)
-  | MainMenu
+  | MainMenu (Maybe String)
   | Init
 
 div :: forall p i. String -> Array (HH.HTML p i) -> HH.HTML p i
@@ -71,11 +77,13 @@ initialState = { state: Init, logs: [] }
 
 render :: forall m. State -> HH.ComponentHTML Action () m
 render app = div "app-container" case app.state of
-  MainMenu -> [ div "main-menu"
+  MainMenu mGame -> [ div "main-menu"
     [ div "logo" [ HH.text "RITOPPU" ]
     -- TODO: Add ability to click on option
     , div "option" [ HH.text "[N]ew game" ]
-    , div "option -inactive" [ HH.text "[C]ontinue last game" ]
+    , div
+      (if isJust mGame then "option" else "option -inactive")
+      [ HH.text "[C]ontinue last game" ]
     , div "copyright" [ HH.text "By Ilya Smelkov" ]
     ]
   ]
@@ -189,7 +197,9 @@ handleAction = case _ of
     -- H.modify_ (_ { state = Idle
     --     { stage: updateFov $ runGenerator seed (generator { x: 30, y: 30 })
     --     } })
-    H.modify_ (_ { state = MainMenu })
+    s <- H.liftEffect (window >>= localStorage)
+    mGame <- H.liftEffect (getItem saveGameStorageKey s)
+    H.modify_ (_ { state = MainMenu mGame })
     pure unit
   MouseClick point -> do
     { state } <- H.get
@@ -216,8 +226,8 @@ handleQuery = case _ of
       Targeting game _ -> do
         cancelKeyAct (KE.key ev) game
         pure (Just next)
-      MainMenu -> do
-        mainMenuKeyAct (KE.key ev)
+      MainMenu mGame -> do
+        mainMenuKeyAct mGame (KE.key ev)
         pure (Just next)
       Dead _ ->
         pure (Just next)
@@ -281,8 +291,8 @@ withItemKeyAct key f game = case { key: key, item: foundItem } of
 
   foundItem = Map.lookup key (inventoryPositions game.stage.player.inventory)
 
-mainMenuKeyAct :: String -> H.HalogenM State Action () Message Aff Unit
-mainMenuKeyAct = case _ of
+mainMenuKeyAct :: (Maybe String) -> String -> H.HalogenM State Action () Message Aff Unit
+mainMenuKeyAct mGame = case _ of
   "n" -> do
     seed <- H.liftEffect randomSeed
     H.modify_ (_ { state = Idle
