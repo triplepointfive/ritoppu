@@ -5,7 +5,11 @@ module Ritoppu.Component.App
 
 import Prelude hiding (div)
 
+import Data.Argonaut.Core (stringify)
+import Data.Argonaut.Decode (decodeJson)
+import Data.Argonaut.Encode (encodeJson)
 import Data.Array (concatMap, take, (:))
+import Data.Either (Either)
 import Data.Foldable (foldM)
 import Data.Map as Map
 import Data.Maybe (Maybe(..), isJust)
@@ -295,7 +299,9 @@ mainMenuKeyAct :: (Maybe String) -> String -> H.HalogenM State Action () Message
 mainMenuKeyAct mGame = case _ of
   "n" -> do
     seed <- H.liftEffect randomSeed
-    H.modify_ (_ { state = Idle
-        { stage: updateFov $ runGenerator seed (generator { x: 30, y: 30 })
-        } })
+    let game = { stage: updateFov $ runGenerator seed (generator { x: 30, y: 30 }) }
+    H.modify_ (_ { state = Idle game })
   _ -> pure unit
+
+saveGame :: Game -> H.HalogenM State Action () Message Aff Unit
+saveGame game = H.liftEffect (window >>= localStorage >>= setItem saveGameStorageKey (stringify $ encodeJson game))

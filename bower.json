@@ -13,7 +13,8 @@
     "purescript-halogen": "^5.0.0",
     "purescript-random": "^4.0.0",
     "purescript-pseudo-random": "^0.2.1",
-    "purescript-web-storage": "^3.0.0"
+    "purescript-web-storage": "^3.0.0",
+    "purescript-argonaut-codecs": "^6.0.2"
   },
   "devDependencies": {
     "purescript-psci-support": "^4.0.0",
