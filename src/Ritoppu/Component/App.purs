@@ -5,17 +5,21 @@ module Ritoppu.Component.App
 
 import Prelude hiding (div)
 
-import Data.Argonaut.Core (stringify)
+import Data.Argonaut.Core (fromString, stringify)
 import Data.Argonaut.Decode (decodeJson)
+import Data.Argonaut.Decode.Class (decodeJArray)
 import Data.Argonaut.Encode (encodeJson)
+import Data.Argonaut.Parser (jsonParser)
 import Data.Array (concatMap, take, (:))
-import Data.Either (Either)
+import Data.Either (Either(..))
 import Data.Foldable (foldM)
 import Data.Map as Map
 import Data.Maybe (Maybe(..), isJust)
 import Data.Tuple (Tuple(..))
+import Effect (Effect)
 import Effect.Aff (Aff)
 import Effect.Aff.Class (class MonadAff)
+import Effect.Console (log)
 import Halogen as H
 import Halogen.HTML as HH
 import Halogen.HTML.Events as HE
@@ -34,12 +38,15 @@ import Ritoppu.Mutation (updateFov)
 import Ritoppu.Random (runGenerator, randomSeed)
 import Web.HTML (window)
 import Web.HTML.Window (localStorage)
-import Web.Storage.Storage (setItem, getItem)
+import Web.Storage.Storage (getItem, removeItem, setItem)
 import Web.UIEvent.KeyboardEvent (KeyboardEvent)
 import Web.UIEvent.KeyboardEvent as KE
 
 saveGameStorageKey :: String
 saveGameStorageKey = "savedGame"
+
+autoSave :: Boolean
+autoSave = true
 
 data Action
   = InitGame
@@ -57,7 +64,7 @@ data AppScreen
   | UseItem Game -- EXTRA: Move numered inventory here?
   | DropItem Game
   | Targeting Game (Point -> Game -> ActionResult Game)
-  | MainMenu (Maybe String)
+  | MainMenu (Maybe Game)
   | Init
 
 div :: forall p i. String -> Array (HH.HTML p i) -> HH.HTML p i
@@ -202,7 +209,7 @@ handleAction = case _ of
     --     { stage: updateFov $ runGenerator seed (generator { x: 30, y: 30 })
     --     } })
     s <- H.liftEffect (window >>= localStorage)
-    mGame <- H.liftEffect (getItem saveGameStorageKey s)
+    mGame <- H.liftEffect loadGame
     H.modify_ (_ { state = MainMenu mGame })
     pure unit
   MouseClick point -> do
@@ -243,14 +250,22 @@ processAction state = case _ of
   A.LogMessage message -> do
       pure state { logs = take 5 (message : state.logs) }
   A.Die game -> do
+      H.liftEffect deleteGame
       pure state { state = Dead game }
   A.Target game f -> do
       pure state { state = Targeting game f }
 
 action :: (Game -> ActionResult Game) -> Game -> H.HalogenM State Action () Message Aff Unit
 action f game = do
-  state <- H.get
-  foldM processAction (state { state = Idle result }) actions >>= H.put
+  app <- H.get
+  foldM processAction (app { state = Idle result }) actions >>= H.put
+
+  when autoSave do
+    { state } <- H.get
+    case state of
+      Idle g ->
+        H.liftEffect (saveGame g)
+      _ -> pure unit
 
   where
 
@@ -295,13 +310,36 @@ withItemKeyAct key f game = case { key: key, item: foundItem } of
 
   foundItem = Map.lookup key (inventoryPositions game.stage.player.inventory)
 
-mainMenuKeyAct :: (Maybe String) -> String -> H.HalogenM State Action () Message Aff Unit
-mainMenuKeyAct mGame = case _ of
-  "n" -> do
+mainMenuKeyAct :: (Maybe Game) -> String -> H.HalogenM State Action () Message Aff Unit
+mainMenuKeyAct mGame key = case { key, mGame } of
+  { key: "n" } -> do
     seed <- H.liftEffect randomSeed
     let game = { stage: updateFov $ runGenerator seed (generator { x: 30, y: 30 }) }
+    H.liftEffect (saveGame game)
+    H.modify_ (_ { state = Idle game })
+  { key: "c", mGame: Just game } -> do
     H.modify_ (_ { state = Idle game })
   _ -> pure unit
 
-saveGame :: Game -> H.HalogenM State Action () Message Aff Unit
-saveGame game = H.liftEffect (window >>= localStorage >>= setItem saveGameStorageKey (stringify $ encodeJson game))
+deleteGame :: Effect Unit
+deleteGame = window >>= localStorage >>= removeItem saveGameStorageKey
+
+saveGame :: Game -> Effect Unit
+saveGame game = window >>= localStorage >>= setItem saveGameStorageKey (stringify $ encodeJson game)
+
+loadGame :: Effect (Maybe Game)
+loadGame = do
+  mJsonGame <- window >>= localStorage >>= getItem saveGameStorageKey
+  case mJsonGame of
+    Just jsonGame -> do
+      case jsonParser jsonGame of
+        Left msg -> do
+          log msg
+          pure Nothing
+        Right json -> do
+          case decodeJson json of
+            Left msg -> do
+              log msg
+              pure Nothing
+            Right game -> pure game
+    Nothing -> pure Nothing
