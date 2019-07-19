@@ -39,14 +39,15 @@ type Message = Void
 data Query a
   = KeyboardDown KeyboardEvent a
 
-type State = { state :: GameState, logs :: Array A.Message }
+type State = { state :: AppScreen, logs :: Array A.Message }
 
-data GameState
+data AppScreen
   = Idle Game
   | Dead Game
   | UseItem Game -- EXTRA: Move numered inventory here?
   | DropItem Game
   | Targeting Game (Point -> Game -> ActionResult Game)
+  | MainMenu
   | Init
 
 div :: forall p i. String -> Array (HH.HTML p i) -> HH.HTML p i
@@ -70,6 +71,14 @@ initialState = { state: Init, logs: [] }
 
 render :: forall m. State -> HH.ComponentHTML Action () m
 render app = div "app-container" case app.state of
+  MainMenu -> [ div "main-menu"
+    [ div "logo" [ HH.text "RITOPPU" ]
+    -- TODO: Add ability to click on option
+    , div "option" [ HH.text "[N]ew game" ]
+    , div "option -inactive" [ HH.text "[C]ontinue last game" ]
+    , div "copyright" [ HH.text "By Ilya Smelkov" ]
+    ]
+  ]
   Idle game ->
     [ gameInterface game
     , loggerBlock app.logs
@@ -177,14 +186,10 @@ handleAction :: Action -> H.HalogenM State Action () Message Aff Unit
 handleAction = case _ of
   InitGame -> do
     seed <- H.liftEffect randomSeed
-    -- H.modify_ (_
-    --   { state = Targeting
-    --     { stage: updateFov $ runGenerator seed (generator { x: 30, y: 30 }) }
-    --     castFireball
-    --   })
-    H.modify_ (_ { state = Idle
-        { stage: updateFov $ runGenerator seed (generator { x: 30, y: 30 })
-        } })
+    -- H.modify_ (_ { state = Idle
+    --     { stage: updateFov $ runGenerator seed (generator { x: 30, y: 30 })
+    --     } })
+    H.modify_ (_ { state = MainMenu })
     pure unit
   MouseClick point -> do
     { state } <- H.get
@@ -210,6 +215,9 @@ handleQuery = case _ of
         pure (Just next)
       Targeting game _ -> do
         cancelKeyAct (KE.key ev) game
+        pure (Just next)
+      MainMenu -> do
+        mainMenuKeyAct (KE.key ev)
         pure (Just next)
       Dead _ ->
         pure (Just next)
@@ -272,3 +280,12 @@ withItemKeyAct key f game = case { key: key, item: foundItem } of
   where
 
   foundItem = Map.lookup key (inventoryPositions game.stage.player.inventory)
+
+mainMenuKeyAct :: String -> H.HalogenM State Action () Message Aff Unit
+mainMenuKeyAct = case _ of
+  "n" -> do
+    seed <- H.liftEffect randomSeed
+    H.modify_ (_ { state = Idle
+        { stage: updateFov $ runGenerator seed (generator { x: 30, y: 30 })
+        } })
+  _ -> pure unit
