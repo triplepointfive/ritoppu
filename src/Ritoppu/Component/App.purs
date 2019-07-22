@@ -23,7 +23,7 @@ import Halogen as H
 import Halogen.HTML as HH
 import Halogen.HTML.Events as HE
 import Halogen.HTML.Properties as HP
-import Ritoppu.Action (ActionResult, inactive)
+import Ritoppu.Action (ActionResult, inactive, withAction)
 import Ritoppu.Action as A
 import Ritoppu.Action.DropItem (dropItem)
 import Ritoppu.Action.Move (move)
@@ -32,8 +32,8 @@ import Ritoppu.Action.UseItem (useItem)
 import Ritoppu.Display (build)
 import Ritoppu.DisplayLog (loggerBlock)
 import Ritoppu.DungeonGenerator (generator)
-import Ritoppu.Model (Direction(..), Game, Item, Point, inventoryPositions, itemName)
-import Ritoppu.Mutation (updateFov)
+import Ritoppu.Model (Direction(..), Game, Item, Point, Tile(..), inventoryPositions, itemName, tileAt)
+import Ritoppu.Mutation (heal, updateFov)
 import Ritoppu.Random (runGenerator, randomSeed)
 import Web.HTML (window)
 import Web.HTML.Window (localStorage)
@@ -293,7 +293,30 @@ idleKeyAct = case _ of
   "g" -> action pickUp
   "a" -> \game -> H.modify_ (_ { state = UseItem game })
   "d" -> \game -> H.modify_ (_ { state = DropItem game })
+  "Enter" -> downstairs
   _ -> action inactive
+
+downstairs :: Game -> H.HalogenM State Action () Message Aff Unit
+downstairs game = case tileAt game.stage game.stage.player.pos of
+  StairsDown -> do
+    H.modify_ (_ { state = DropItem game })
+
+    seed <- H.liftEffect randomSeed
+    let newStage = runGenerator seed (generator { x: 30, y: 30 })
+
+    action
+      (\g -> withAction g (A.LogMessage A.DownstairsRest))
+      { stage: updateFov $ newStage
+        { player = game.stage.player
+          { pos = newStage.player.pos
+          , turn = 0
+          , stats = heal (game.stage.player.stats.maxHp / 2) game.stage.player.stats
+          }
+        }
+      , dungeonLevel: game.dungeonLevel + 1
+      }
+  _ ->
+    action (\g -> withAction g (A.LogMessage A.NoStairs)) game
 
 cancelKeyAct :: String -> Game -> H.HalogenM State Action () Message Aff Unit
 cancelKeyAct key game = case key of

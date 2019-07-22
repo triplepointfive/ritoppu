@@ -84,8 +84,10 @@ buildMessage msg = div "log-message" $ case msg of
       , warn (creatureName creature)
       , info " look vacant, as he starts to stumble around!"
       ]
-
-
+  NoStairs
+    -> [ debug "There are no stairs here." ]
+  DownstairsRest
+    -> [ focus "You take a moment to rest, and recover your strength." ]
 
 debug :: forall p i. String -> HH.HTML p i
 debug = withStyle "msg -debug"

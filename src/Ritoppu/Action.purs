@@ -38,6 +38,8 @@ data Message
   | Targeting String
   | TargetNoEnemy
   | CastConfusion Creature
+  | NoStairs
+  | DownstairsRest
 
 data Action
   = LogMessage Message
