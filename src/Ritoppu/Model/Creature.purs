@@ -45,6 +45,7 @@ type Creature =
   , stats :: Stats
   , turn :: Int
   , aiStrategy :: AiStrategy
+  , xp :: Int
   }
 
 creatureName :: Creature -> String

@@ -2,6 +2,7 @@ module Ritoppu.Model
   ( module Ritoppu.Model.Direction
   , module Ritoppu.Model.FovMask
   , module Ritoppu.Model.Item
+  , module Ritoppu.Model.Level
   , module Ritoppu.Model.Creature
   , module Ritoppu.Model.CreatureRepository
   , module Ritoppu.Model.CreatureType
@@ -23,6 +24,7 @@ import Ritoppu.Model.FovMask (FovMask, isVisibleTile, isSeenTile)
 import Ritoppu.Model.Game (Game)
 import Ritoppu.Model.Inventory (Inventory, inventoryPositions)
 import Ritoppu.Model.Item (Item(..), newCorpse, itemName)
+import Ritoppu.Model.Level (Level, isReadyToLevelUp, experienceToNextLevel)
 import Ritoppu.Model.Player (Player)
 import Ritoppu.Model.Point (Point, adjustPoints, isNextTo, doubleDistanceBetween)
 import Ritoppu.Model.Rect (Rect, center, fillRect, innerRect, intersect, outerRect)

@@ -32,7 +32,7 @@ import Ritoppu.Action.UseItem (useItem)
 import Ritoppu.Display (build)
 import Ritoppu.DisplayLog (loggerBlock)
 import Ritoppu.DungeonGenerator (generator)
-import Ritoppu.Model (Direction(..), Game, Item, Point, Tile(..), inventoryPositions, itemName, tileAt)
+import Ritoppu.Model (Direction(..), Game, Item, Point, Tile(..), experienceToNextLevel, inventoryPositions, itemName, tileAt)
 import Ritoppu.Mutation (heal, updateFov)
 import Ritoppu.Random (runGenerator, randomSeed)
 import Web.HTML (window)
@@ -143,6 +143,19 @@ sidebar' game =
             , HH.dt [] [ HH.text (show game.dungeonLevel) ]
             , HH.dd [] [ HH.text "HP" ]
             , HH.dt [] [ HH.text (show game.stage.player.stats.hp <> " / " <> show game.stage.player.stats.maxHp) ]
+            , HH.dd [] [ HH.text "Level" ]
+            , HH.dt [] [ HH.text
+              ( show game.stage.player.level.currentLevel
+              <> " ("
+              <> (show game.stage.player.level.currentXp)
+              <> " / "
+              <> (show $ experienceToNextLevel game.stage.player.level)
+              <> ")"
+              ) ]
+            , HH.dd [] [ HH.text "Power" ]
+            , HH.dt [] [ HH.text (show game.stage.player.stats.power) ]
+            , HH.dd [] [ HH.text "Defense" ]
+            , HH.dt [] [ HH.text (show game.stage.player.stats.defense) ]
             ]
         ]
     , HH.text "Inventory:"
@@ -178,6 +191,19 @@ sidebar game =
             , HH.dt [] [ HH.text (show game.dungeonLevel) ]
             , HH.dd [] [ HH.text "HP" ]
             , HH.dt [] [ HH.text (show game.stage.player.stats.hp <> " / " <> show game.stage.player.stats.maxHp) ]
+            , HH.dd [] [ HH.text "Level" ]
+            , HH.dt [] [ HH.text
+              ( show game.stage.player.level.currentLevel
+              <> " ("
+              <> (show game.stage.player.level.currentXp)
+              <> " / "
+              <> (show $ experienceToNextLevel game.stage.player.level)
+              <> ")"
+              ) ]
+            , HH.dd [] [ HH.text "Power" ]
+            , HH.dt [] [ HH.text (show game.stage.player.stats.power) ]
+            , HH.dd [] [ HH.text "Defense" ]
+            , HH.dt [] [ HH.text (show game.stage.player.stats.defense) ]
             ]
         ]
     , HH.text "Inventory:"

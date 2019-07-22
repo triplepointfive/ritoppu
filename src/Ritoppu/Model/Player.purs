@@ -4,6 +4,7 @@ module Ritoppu.Model.Player
   ) where
 
 import Ritoppu.Model.Inventory (Inventory, initInventory)
+import Ritoppu.Model.Level (Level, initLevel)
 import Ritoppu.Model.Point (Point)
 import Ritoppu.Model.Stats (Stats)
 
@@ -12,6 +13,7 @@ type Player =
   , stats :: Stats
   , turn :: Int
   , inventory :: Inventory
+  , level :: Level
   }
 
 initPlayer :: Player
@@ -20,4 +22,5 @@ initPlayer =
   , stats: { maxHp: 30, hp: 30, defense: 2, power: 5 }
   , turn: 0
   , inventory: initInventory
+  , level: initLevel
   }
