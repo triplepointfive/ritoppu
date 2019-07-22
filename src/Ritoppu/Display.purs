@@ -56,6 +56,8 @@ buildElem props stage pos = case { creature: creatureAt stage pos, item: itemAt 
   displayTile var = case _ of
     Floor -> div_ (props pos) ("tile -floor" <> var)
     Wall -> div_ (props pos) ("tile -wall" <> var)
+    StairsDown -> div_ (props pos) ("tile -stairs_down" <> var)
+    StairsUp -> div_ (props pos) ("tile -stairs_up" <> var)
 
 creatureClass :: CreatureType -> String
 creatureClass = case _ of

@@ -29,6 +29,10 @@ $sprite-ratio: $cell-size / $sprite-tile-size * $sprite-tile-size
     @include tile(28, 45)
   &.-nothing
     @include tile(28, 44)
+  &.-stairs_down
+    @include tile(1, 46)
+  &.-stairs_up
+    @include tile(7, 46)
 
   > .creature, .item
     position: absolute

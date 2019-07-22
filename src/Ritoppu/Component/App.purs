@@ -5,9 +5,8 @@ module Ritoppu.Component.App
 
 import Prelude hiding (div)
 
-import Data.Argonaut.Core (fromString, stringify)
+import Data.Argonaut.Core (stringify)
 import Data.Argonaut.Decode (decodeJson)
-import Data.Argonaut.Decode.Class (decodeJArray)
 import Data.Argonaut.Encode (encodeJson)
 import Data.Argonaut.Parser (jsonParser)
 import Data.Array (concatMap, take, (:))
@@ -205,13 +204,13 @@ handleAction :: Action -> H.HalogenM State Action () Message Aff Unit
 handleAction = case _ of
   InitGame -> do
     seed <- H.liftEffect randomSeed
-    -- H.modify_ (_ { state = Idle
-    --     { stage: updateFov $ runGenerator seed (generator { x: 30, y: 30 })
-    --     } })
-    s <- H.liftEffect (window >>= localStorage)
-    mGame <- H.liftEffect loadGame
-    H.modify_ (_ { state = MainMenu mGame })
-    pure unit
+    H.modify_ (_ { state = Idle
+        { stage: updateFov $ runGenerator seed (generator { x: 30, y: 30 })
+        } })
+    -- s <- H.liftEffect (window >>= localStorage)
+    -- mGame <- H.liftEffect loadGame
+    -- H.modify_ (_ { state = MainMenu mGame })
+    -- pure unit
   MouseClick point -> do
     { state } <- H.get
     case state of

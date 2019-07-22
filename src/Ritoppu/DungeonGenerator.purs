@@ -4,14 +4,14 @@ module Ritoppu.DungeonGenerator
 
 import Prelude
 
-import Data.Array (concatMap, head, index, nub, singleton, (..), (:))
+import Data.Array (concatMap, head, index, last, nub, singleton, (..), (:))
 import Data.Foldable (any, foldl, foldr, length)
 import Data.Map as Map
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Set as Set
 import Data.Traversable (traverse, for)
 import Data.Tuple (Tuple(..))
-import Ritoppu.Model (CreatureType(..), CreatureRepository, Item(..), Point, Rect, Stage, Tile(..), center, fillRect, initStage, intersect, outerRect, AiStrategy(..), passibleThrough)
+import Ritoppu.Model (AiStrategy(..), CreatureRepository, CreatureType(..), Item(..), Point, Rect, Stage, Tile(..), center, fillRect, initStage, intersect, outerRect, passibleThrough)
 import Ritoppu.Mutation (setTile)
 import Ritoppu.Random (RandomGenerator, newCreature, newInt, newItem, newPoint, newRect)
 import Ritoppu.Utils (nTimes)
@@ -52,17 +52,25 @@ generator size = do
 
 addRooms :: Stage -> Array Rect -> RandomGenerator Stage
 addRooms stage rooms = do
+  -- EXTRA: Validate never has intercalation
   playerPos <- newPoint a.x a.y b.x b.y
-  corridors <- pure $ as Floor $ builtCorridors (map center rooms)
+  stairsDownPos <- newPoint lastRoom.a.x lastRoom.a.y lastRoom.b.x lastRoom.b.y
 
-  generateItems =<< generateCreatures (add stage { player { pos = playerPos } } (corridors <> builtRooms))
+  generateCreatures (stageWithFloors playerPos stairsDownPos) >>= generateItems
 
   where
 
+  builtRooms = concatMap (as Floor <<< fillRect) rooms
+  corridors = as Floor $ builtCorridors (map center rooms)
+  stairs playerPos stairsDownPos = as StairsUp [playerPos] <> as StairsDown [stairsDownPos]
+
+  stageWithFloors playerPos stairsDownPos = add
+    stage { player { pos = playerPos } }
+    ((stairs playerPos stairsDownPos) <> corridors <> builtRooms)
+
   add = foldr (\ { pos, tile } -> setTile tile pos)
   { a, b } = fromMaybe ({ a: { x: 0, y: 0 }, b: stage.size }) (head rooms)
-
-  builtRooms = concatMap (as Floor <<< fillRect) rooms
+  lastRoom = fromMaybe ({ a: { x: 0, y: 0 }, b: stage.size }) (last rooms)
 
 generateCreatures :: Stage -> RandomGenerator Stage
 generateCreatures stage = do
