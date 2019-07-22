@@ -139,7 +139,9 @@ sidebar' game =
   div "panel-sidebar"
     [ div "stats"
         [ HH.dl []
-            [ HH.dd [] [ HH.text "HP" ]
+            [ HH.dd [] [ HH.text "Dungeon Level" ]
+            , HH.dt [] [ HH.text (show game.dungeonLevel) ]
+            , HH.dd [] [ HH.text "HP" ]
             , HH.dt [] [ HH.text (show game.stage.player.stats.hp <> " / " <> show game.stage.player.stats.maxHp) ]
             ]
         ]
@@ -172,7 +174,9 @@ sidebar game =
   div "panel-sidebar"
     [ div "stats"
         [ HH.dl []
-            [ HH.dd [] [ HH.text "HP" ]
+            [ HH.dd [] [ HH.text "Dungeon Level" ]
+            , HH.dt [] [ HH.text (show game.dungeonLevel) ]
+            , HH.dd [] [ HH.text "HP" ]
             , HH.dt [] [ HH.text (show game.stage.player.stats.hp <> " / " <> show game.stage.player.stats.maxHp) ]
             ]
         ]
@@ -206,6 +210,7 @@ handleAction = case _ of
     seed <- H.liftEffect randomSeed
     H.modify_ (_ { state = Idle
         { stage: updateFov $ runGenerator seed (generator { x: 30, y: 30 })
+        , dungeonLevel: 1
         } })
     -- s <- H.liftEffect (window >>= localStorage)
     -- mGame <- H.liftEffect loadGame
@@ -313,7 +318,10 @@ mainMenuKeyAct :: (Maybe Game) -> String -> H.HalogenM State Action () Message A
 mainMenuKeyAct mGame key = case { key, mGame } of
   { key: "n" } -> do
     seed <- H.liftEffect randomSeed
-    let game = { stage: updateFov $ runGenerator seed (generator { x: 30, y: 30 }) }
+    let game =
+          { stage: updateFov $ runGenerator seed (generator { x: 30, y: 30 })
+          , dungeonLevel: 1
+          }
     H.liftEffect (saveGame game)
     H.modify_ (_ { state = Idle game })
   { key: "c", mGame: Just game } -> do

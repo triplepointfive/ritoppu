@@ -6,4 +6,5 @@ import Ritoppu.Model.Stage (Stage)
 
 type Game =
   { stage :: Stage
+  , dungeonLevel :: Int
   }
