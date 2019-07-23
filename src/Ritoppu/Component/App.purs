@@ -26,6 +26,7 @@ import Halogen.HTML.Properties as HP
 import Ritoppu.Action (ActionResult, inactive, withAction)
 import Ritoppu.Action as A
 import Ritoppu.Action.DropItem (dropItem)
+import Ritoppu.Action.IncreaseStats (increaseDefense, increaseMaxHp, increasePower)
 import Ritoppu.Action.Move (move)
 import Ritoppu.Action.PickUp (pickUp)
 import Ritoppu.Action.UseItem (useItem)
@@ -65,6 +66,7 @@ data AppScreen
   | Targeting Game (Point -> Game -> ActionResult Game)
   | MainMenu (Maybe Game)
   | Init
+  | LevelUp Game
 
 div :: forall p i. String -> Array (HH.HTML p i) -> HH.HTML p i
 div classes = HH.div [ HP.class_ (H.ClassName classes) ]
@@ -101,6 +103,27 @@ render app = div "app-container" case app.state of
     [ gameInterface game
     , loggerBlock app.logs
     , sidebar game
+    ]
+  LevelUp game ->
+    [ gameInterface game
+    , loggerBlock app.logs
+    , sidebar game
+    , div "screen -levelup"
+        [ div "title" [ HH.text ("You gained level " <> show game.stage.player.level.currentLevel) ]
+        , HH.text "Level up! Choose a stat to raise:"
+        , div "menu-option"
+            [ div "key" [ HH.text "a" ]
+            , div "value" [ HH.text ("Constitution (+20 HP, from " <> show game.stage.player.stats.maxHp <> ")") ]
+            ]
+        , div "menu-option"
+            [ div "key" [ HH.text "b" ]
+            , div "value" [ HH.text ("Strength (+1 attack, from " <> show game.stage.player.stats.power <> ")") ]
+            ]
+        , div "menu-option"
+            [ div "key" [ HH.text "c" ]
+            , div "value" [ HH.text ("Agility (+1 defense, from " <> show game.stage.player.stats.defense <> ")") ]
+            ]
+        ]
     ]
   Dead game ->
     [ gameInterface game
@@ -236,14 +259,12 @@ handleAction :: Action -> H.HalogenM State Action () Message Aff Unit
 handleAction = case _ of
   InitGame -> do
     seed <- H.liftEffect randomSeed
-    H.modify_ (_ { state = Idle
-        { stage: updateFov $ runGenerator seed (generator { x: 30, y: 30 })
-        , dungeonLevel: 1
-        } })
-    -- s <- H.liftEffect (window >>= localStorage)
-    -- mGame <- H.liftEffect loadGame
-    -- H.modify_ (_ { state = MainMenu mGame })
-    -- pure unit
+    -- H.modify_ (_ { state = LevelUp
+    --     { stage: updateFov $ runGenerator seed (generator { x: 30, y: 30 })
+    --     , dungeonLevel: 1
+    --     } })
+    mGame <- H.liftEffect loadGame
+    H.modify_ (_ { state = MainMenu mGame })
   MouseClick point -> do
     { state } <- H.get
     case state of
@@ -272,6 +293,9 @@ handleQuery = case _ of
       MainMenu mGame -> do
         mainMenuKeyAct mGame (KE.key ev)
         pure (Just next)
+      LevelUp game -> do
+        levelUpKeyAct (KE.key ev) game
+        pure (Just next)
       Dead _ ->
         pure (Just next)
       Init ->
@@ -286,6 +310,8 @@ processAction state = case _ of
       pure state { state = Dead game }
   A.Target game f -> do
       pure state { state = Targeting game f }
+  A.LevelUp game -> do
+      pure state { state = LevelUp game }
 
 action :: (Game -> ActionResult Game) -> Game -> H.HalogenM State Action () Message Aff Unit
 action f game = do
@@ -349,6 +375,13 @@ downstairs game = case tileAt game.stage game.stage.player.pos of
 cancelKeyAct :: String -> Game -> H.HalogenM State Action () Message Aff Unit
 cancelKeyAct key game = case key of
   "Escape" -> H.modify_ (_ { state = Idle game })
+  _ -> pure unit
+
+levelUpKeyAct :: String -> Game -> H.HalogenM State Action () Message Aff Unit
+levelUpKeyAct key game = case key of
+  "a" -> action (increaseMaxHp 20) game
+  "b" -> action (increasePower 1) game
+  "c" -> action (increaseDefense 1) game
   _ -> pure unit
 
 withItemKeyAct :: String -> (Item -> Game -> ActionResult Game) -> Game -> H.HalogenM State Action () Message Aff Unit

@@ -9,6 +9,7 @@ module Ritoppu.Action
   , onResult
   , withAction
   , target
+  , openLevelUp
   ) where
 
 import Prelude
@@ -45,6 +46,7 @@ data Action
   = LogMessage Message
   | Die Game
   | Target Game (Point -> Game -> ActionResult Game)
+  | LevelUp Game
 
 type ActionResult a =
   { result :: a
@@ -53,6 +55,9 @@ type ActionResult a =
 
 die :: ActionResult Game -> ActionResult Game
 die { result, actions } = { result, actions: Die result : actions }
+
+openLevelUp :: ActionResult Game -> ActionResult Game
+openLevelUp { result, actions } = { result, actions: LevelUp result : actions }
 
 target :: (Point -> Game -> ActionResult Game) -> String -> ActionResult Game -> ActionResult Game
 target f msg { result, actions } = { result, actions: Target result f : LogMessage (Targeting msg) : actions }

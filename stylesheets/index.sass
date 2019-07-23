@@ -39,6 +39,35 @@ body
     -webkit-font-smoothing: antialiased
     text-shadow: 0 0 1rem black, 0 0 1rem black, 0 0 1rem black, 0 0 1rem black, 0 0 1rem black, 0 0 1rem black, 0 0 1rem black, 0 0 1rem black, 0 0 1rem black, 0 0 1rem black, 0 0 1rem black, 0 0 1rem black, 0 0 1rem black, 0 0 1rem black, 0 0 1rem black, 0 0 1rem black, 0 0 1rem black, 0 0 1rem black, 0 0 1rem black, 0 0 1rem black
 
+  &.-levelup
+    background-color: black
+    border-radius: 1rem
+    border: 1px solid orange
+    padding: 1rem 3rem
+    top: 20%
+    color: white
+
+    > .title
+      font-size: 2rem
+      text-align: center
+      color: orange
+      margin: 1rem 0
+
+    > .menu-option
+      margin: 0.5rem 0
+
+      > .key
+        color: orange
+        display: inline
+        margin-right: 0.5rem
+
+        &::after
+          content: ':'
+
+      > .value
+        color: white
+        display: inline
+
 .panel-sidebar
   position: fixed
   right: 0

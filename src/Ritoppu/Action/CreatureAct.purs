@@ -10,7 +10,7 @@ import Data.Foldable (any, foldr)
 import Data.Map as Map
 import Data.Maybe (Maybe(..))
 import Data.Tuple (Tuple(..))
-import Ritoppu.Action (Action(..), ActionResult, Message(..), addAction, inactive, onResult, die)
+import Ritoppu.Action (Action(..), ActionResult, Message(..), addAction, die, inactive, onResult, openLevelUp)
 import Ritoppu.Model (AiStrategy(..), Creature, Game, Point, Stage, adjustPoints, anybodyAt, availableToMoveTo, damageTo, isNextTo, isReadyToLevelUp)
 import Ritoppu.Mutation (moveCreature, updateCreature, takeDamage)
 import Ritoppu.Mutation.Level (levelIncrease)
@@ -20,7 +20,7 @@ import Ritoppu.Mutation.Level (levelIncrease)
 -- TODO: change isReadyToLevelUp?
 creatureAct :: Game -> ActionResult Game
 creatureAct game = if isReadyToLevelUp game.stage.player.level 0
-  then creatureAct $ game { stage { player { level = levelIncrease 0 game.stage.player.level } } }
+  then openLevelUp $ inactive game { stage { player { level = levelIncrease 0 game.stage.player.level } } }
   else actNext $ inactive game
 
 actNext :: ActionResult Game -> ActionResult Game
