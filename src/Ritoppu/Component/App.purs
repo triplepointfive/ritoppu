@@ -27,7 +27,7 @@ import Ritoppu.Action (ActionResult, inactive, withAction)
 import Ritoppu.Action as A
 import Ritoppu.Action.DropItem (dropItem)
 import Ritoppu.Action.IncreaseStats (increaseDefense, increaseMaxHp, increasePower)
-import Ritoppu.Action.Move (move)
+import Ritoppu.Action.Move (move, wait)
 import Ritoppu.Action.PickUp (pickUp)
 import Ritoppu.Action.UseItem (useItem)
 import Ritoppu.Display (build)
@@ -343,6 +343,8 @@ idleKeyAct = case _ of
   "ArrowDown" -> action $ move S
   "ArrowUp" -> action $ move N
   "ArrowRight" -> action $ move E
+  "." -> action wait
+  "z" -> action wait
   "," -> action pickUp
   "g" -> action pickUp
   "a" -> \game -> H.modify_ (_ { state = UseItem game })

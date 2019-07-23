@@ -1,5 +1,6 @@
 module Ritoppu.Action.Move
   ( move
+  , wait
   ) where
 
 import Prelude
@@ -50,3 +51,6 @@ playerTurn game = game { stage { player { turn = game.stage.player.turn + 5 } } 
 
 addExperience :: Int -> Stage -> Stage
 addExperience xp stage = stage { player = gainXp xp stage.player }
+
+wait :: Game -> ActionResult Game
+wait = creatureAct <<< playerTurn
