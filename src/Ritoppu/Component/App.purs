@@ -168,6 +168,7 @@ sidebar' game =
         , div "" [ HH.text "g or , to pick item up" ]
         , div "" [ HH.text "d to drop" ]
         , div "" [ HH.text "a to use an item" ]
+        , div "" [ HH.text "Enter to go downstairs" ]
         ]
     ]
 
@@ -217,6 +218,7 @@ sidebar game =
         , div "" [ HH.text "g or , to pick item up" ]
         , div "" [ HH.text "d to drop" ]
         , div "" [ HH.text "a to use an item" ]
+        , div "" [ HH.text "Enter to go downstairs" ]
         ]
     ]
 

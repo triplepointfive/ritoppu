@@ -15,8 +15,8 @@ type Level =
 initLevel :: Level
 initLevel = { currentLevel: 1, currentXp: 0 }
 
-isReadyToLevelUp :: Int -> Level -> Boolean
-isReadyToLevelUp xp level@{ currentXp } = xp + currentXp >= experienceToNextLevel level
+isReadyToLevelUp :: Level -> Int -> Boolean
+isReadyToLevelUp level@{ currentXp } xp = xp + currentXp >= experienceToNextLevel level
 
 experienceToNextLevel :: Level -> Int
 experienceToNextLevel { currentLevel } = upBase + currentLevel * upFactor
@@ -27,4 +27,4 @@ experienceToNextLevel { currentLevel } = upBase + currentLevel * upFactor
   upBase = 200
 
   upFactor :: Int
-  upFactor = 15
+  upFactor = 150

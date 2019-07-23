@@ -11,8 +11,8 @@ import Data.Maybe (Maybe(..))
 import Data.Tuple (Tuple(..))
 import Ritoppu.Action (Action(..), ActionResult, Message(..), addAction, addActions, withAction)
 import Ritoppu.Action.CreatureAct (creatureAct)
-import Ritoppu.Model (Creature, Game, Item(..), Point, creatureAt, doubleDistanceBetween, isVisibleTile, newCorpse, AiStrategy(..))
-import Ritoppu.Mutation (addItem, hitPlayer, removeCreature, removeItemFromInventory, takeDamage, updateCreature)
+import Ritoppu.Model (AiStrategy(..), Creature, Game, Item(..), Point, Stage, creatureAt, doubleDistanceBetween, isVisibleTile, newCorpse)
+import Ritoppu.Mutation (addItem, gainXp, hitPlayer, removeCreature, removeItemFromInventory, takeDamage, updateCreature)
 
 castFireball :: Point -> Game -> ActionResult Game
 castFireball dest game = case isVisibleTile game.stage.fovMask dest of
@@ -45,7 +45,7 @@ castFireball dest game = case isVisibleTile game.stage.fovMask dest of
   attackedStage g = removeItem FireballScroll $ g { stage =
     foldr
       (\(Tuple pos creature) -> if creature.stats.hp <= damage
-        then addItem pos (newCorpse creature) <<< removeCreature pos
+        then addExperience creature.xp <<< addItem pos (newCorpse creature) <<< removeCreature pos
         else updateCreature pos (\c -> c { stats = takeDamage damage c.stats }))
       g.stage
       creatures
@@ -59,6 +59,9 @@ castFireball dest game = case isVisibleTile game.stage.fovMask dest of
   creatures
     = filter (\(Tuple p _) -> doubleDistanceBetween p dest <= radius * radius)
     $ (Map.toUnfoldable game.stage.creatures :: Array (Tuple Point Creature))
+
+addExperience :: Int -> Stage -> Stage
+addExperience xp stage = stage { player = gainXp xp stage.player }
 
 -- TODO: Remove duplicity
 playerTurn :: Game -> Game

@@ -11,12 +11,17 @@ import Data.Map as Map
 import Data.Maybe (Maybe(..))
 import Data.Tuple (Tuple(..))
 import Ritoppu.Action (Action(..), ActionResult, Message(..), addAction, inactive, onResult, die)
-import Ritoppu.Model (Creature, Game, Point, Stage, adjustPoints, anybodyAt, availableToMoveTo, damageTo, isNextTo, AiStrategy(..))
+import Ritoppu.Model (AiStrategy(..), Creature, Game, Point, Stage, adjustPoints, anybodyAt, availableToMoveTo, damageTo, isNextTo, isReadyToLevelUp)
 import Ritoppu.Mutation (moveCreature, updateCreature, takeDamage)
+import Ritoppu.Mutation.Level (levelIncrease)
 
 -- TODO: Creatures must not to walk on each other
+-- TODO: Move leveling out of here
+-- TODO: change isReadyToLevelUp?
 creatureAct :: Game -> ActionResult Game
-creatureAct = actNext <<< inactive
+creatureAct game = if isReadyToLevelUp game.stage.player.level 0
+  then creatureAct $ game { stage { player { level = levelIncrease 0 game.stage.player.level } } }
+  else actNext $ inactive game
 
 actNext :: ActionResult Game -> ActionResult Game
 actNext result@{ result: game } = case head creaturesToAct of

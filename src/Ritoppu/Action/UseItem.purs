@@ -12,8 +12,8 @@ import Data.Tuple (Tuple(..))
 import Ritoppu.Action (Action(..), ActionResult, Message(..), addAction, die, inactive, target, withAction)
 import Ritoppu.Action.CastTargeting (castFireball, castConfusion)
 import Ritoppu.Action.CreatureAct (creatureAct)
-import Ritoppu.Model (Creature, Game, Item(..), Point, doubleDistanceBetween, isFullHealth, newCorpse)
-import Ritoppu.Mutation (addItem, heal, removeCreature, removeItemFromInventory, takeDamage, updateCreature, hitPlayer)
+import Ritoppu.Model (Creature, Game, Item(..), Point, Stage, doubleDistanceBetween, isFullHealth, newCorpse)
+import Ritoppu.Mutation (addItem, gainXp, heal, hitPlayer, removeCreature, removeItemFromInventory, takeDamage, updateCreature)
 
 useItem :: Item -> Game -> ActionResult Game
 useItem = case _ of
@@ -36,6 +36,9 @@ useHealingPotion game = case unit of
 playerTurn :: Game -> Game
 playerTurn game = game { stage { player { turn = game.stage.player.turn + 5 } } }
 
+addExperience :: Int -> Stage -> Stage
+addExperience xp stage = stage { player = gainXp xp stage.player }
+
 -- TODO: Remove duplicity
 removeItem :: Item -> Game -> Game
 removeItem item game =
@@ -46,7 +49,7 @@ useLightningScroll :: Game -> ActionResult Game
 useLightningScroll game = case target of
   Just (Tuple pos creature) | damage >= creature.stats.hp ->
     addAction (LogMessage (AttackKillM creature))
-      $ creatureAct $ actedGame { stage = addItem pos (newCorpse creature) $ removeCreature pos actedGame.stage }
+      $ creatureAct $ actedGame { stage = addExperience creature.xp $ addItem pos (newCorpse creature) $ removeCreature pos actedGame.stage }
   Just (Tuple pos creature) ->
     addAction (LogMessage (AttackM creature damage))
       $ creatureAct $ actedGame

@@ -7,8 +7,8 @@ import Prelude
 import Data.Maybe (Maybe(..))
 import Ritoppu.Action (Action(..), ActionResult, Message(..), addAction, withAction)
 import Ritoppu.Action.CreatureAct (creatureAct)
-import Ritoppu.Model (Creature, Direction, Game, Point, availableToMoveTo, creatureAt, damageTo, newCorpse)
-import Ritoppu.Mutation (moveTo, removeCreature, takeDamage, updateCreature, updateFov, addItem)
+import Ritoppu.Model (Creature, Direction, Game, Point, Stage, availableToMoveTo, creatureAt, damageTo, newCorpse)
+import Ritoppu.Mutation (addItem, gainXp, moveTo, removeCreature, takeDamage, updateCreature, updateFov)
 
 move :: Direction -> Game -> ActionResult Game
 move dir game@{ stage } = case creatureAt stage dest of
@@ -33,7 +33,7 @@ attack pos creature game = case damage of
   _ | damage >= creature.stats.hp ->
     addAction (LogMessage (AttackKillM creature))
       $ creatureAct $ playerTurn game { stage
-          = addItem pos (newCorpse creature)
+          = addExperience creature.xp $ addItem pos (newCorpse creature)
           $ removeCreature pos game.stage }
   _ ->
     addAction (LogMessage (AttackM creature damage))
@@ -47,3 +47,6 @@ attack pos creature game = case damage of
 
 playerTurn :: Game -> Game
 playerTurn game = game { stage { player { turn = game.stage.player.turn + 5 } } }
+
+addExperience :: Int -> Stage -> Stage
+addExperience xp stage = stage { player = gainXp xp stage.player }
