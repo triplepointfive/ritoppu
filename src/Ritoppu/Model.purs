@@ -11,6 +11,7 @@ module Ritoppu.Model
   , module Ritoppu.Model.Player
   , module Ritoppu.Model.Point
   , module Ritoppu.Model.Rect
+  , module Ritoppu.Model.Repository
   , module Ritoppu.Model.Stage
   , module Ritoppu.Model.Stats
   , module Ritoppu.Model.Tile
@@ -28,6 +29,7 @@ import Ritoppu.Model.Level (Level, isReadyToLevelUp, experienceToNextLevel)
 import Ritoppu.Model.Player (Player)
 import Ritoppu.Model.Point (Point, adjustPoints, isNextTo, doubleDistanceBetween)
 import Ritoppu.Model.Rect (Rect, center, fillRect, innerRect, intersect, outerRect)
+import Ritoppu.Model.Repository (Repository, initRepository, pickInRepository)
 import Ritoppu.Model.Stage (Stage, creatureAt, playerAt, tileAt, availableToMoveTo, initStage, anybodyAt, itemAt)
 import Ritoppu.Model.Stats (Stats, damageTo, isFullHealth)
 import Ritoppu.Model.Tile (Tile(..), passibleThrough)

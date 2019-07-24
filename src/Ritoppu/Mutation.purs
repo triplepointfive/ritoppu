@@ -1,6 +1,7 @@
 module Ritoppu.Mutation
   ( module Ritoppu.Mutation.Point
   , module Ritoppu.Mutation.Stage
+  , module Ritoppu.Mutation.Repository
   , module Ritoppu.Mutation.FovMask
   , module Ritoppu.Mutation.Game
   , module Ritoppu.Mutation.Player
@@ -13,5 +14,6 @@ import Ritoppu.Mutation.Game (onStage, hitPlayer)
 import Ritoppu.Mutation.Inventory (addItemToInventory, removeItemFromInventory)
 import Ritoppu.Mutation.Player (gainXp)
 import Ritoppu.Mutation.Point (moveTo)
+import Ritoppu.Mutation.Repository (addToRepository)
 import Ritoppu.Mutation.Stage (addItem, setTile, updateFov, addCreature, removeCreature, moveCreature, updateCreature, removeItem)
 import Ritoppu.Mutation.Stats (takeDamage, heal)
