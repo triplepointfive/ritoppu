@@ -188,6 +188,7 @@ sidebar' game =
     , HH.hr_
     , div "help-section"
         [ div "" [ HH.text "Arrows or vim-keys to move" ]
+        , div "" [ HH.text "z or . to wait" ]
         , div "" [ HH.text "g or , to pick item up" ]
         , div "" [ HH.text "d to drop" ]
         , div "" [ HH.text "a to use an item" ]
@@ -238,6 +239,7 @@ sidebar game =
     , HH.hr_
     , div "help-section"
         [ div "" [ HH.text "Arrows or vim-keys to move" ]
+        , div "" [ HH.text "z or . to wait" ]
         , div "" [ HH.text "g or , to pick item up" ]
         , div "" [ HH.text "d to drop" ]
         , div "" [ HH.text "a to use an item" ]
