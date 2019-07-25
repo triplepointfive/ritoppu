@@ -25,7 +25,7 @@ creaturesRepository dungeonLevel
 
   redNagaHatchling =
     { type: RedNagaHatchling
-    , stats: { maxHp: 10, hp: 10, defense: 0, power: 3 }
+    , stats: { maxHp: 20, hp: 20, defense: 0, power: 4 }
     , turn: 0
     , aiStrategy: BasicAI
     , xp: 35
@@ -33,7 +33,7 @@ creaturesRepository dungeonLevel
 
   redNaga =
     { type: RedNaga
-    , stats: { maxHp: 16, hp: 16, defense: 1, power: 4 }
+    , stats: { maxHp: 30, hp: 30, defense: 2, power: 8 }
     , turn: 0
     , aiStrategy: BasicAI
     , xp: 100

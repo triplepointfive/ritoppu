@@ -30,7 +30,7 @@ useHealingPotion game = case unit of
   _
     -> addAction (LogMessage Healed)
     -- TODO: Magic number
-    $ creatureAct (removeItem HealingPotion $ playerTurn game { stage { player { stats = heal 4 game.stage.player.stats } } } )
+    $ creatureAct (removeItem HealingPotion $ playerTurn game { stage { player { stats = heal 40 game.stage.player.stats } } } )
 
 -- TODO: Remove duplicity
 playerTurn :: Game -> Game
@@ -74,4 +74,4 @@ useLightningScroll game = case target of
     = minimumBy (\(Tuple p1 _) (Tuple p2 _) -> doubleDistanceBetween p1 pPos `compare` doubleDistanceBetween p2 pPos)
     $ filter (\(Tuple p _) -> doubleDistanceBetween p pPos <= 25) -- TODO: Magic number
     $ (Map.toUnfoldable game.stage.creatures :: Array (Tuple Point Creature))
-  damage = 20
+  damage = 40

@@ -53,7 +53,7 @@ castFireball dest game = case isVisibleTile game.stage.fovMask dest of
 
   -- TODO: Magic number
   radius = 3
-  damage = 12
+  damage = 25
 
   -- EXTRA: Attack player as well
   creatures

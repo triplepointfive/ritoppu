@@ -19,7 +19,7 @@ type Player =
 initPlayer :: Player
 initPlayer =
   { pos: { x: 0, y: 0 }
-  , stats: { maxHp: 30, hp: 30, defense: 2, power: 5 }
+  , stats: { maxHp: 100, hp: 100, defense: 1, power: 4 }
   , turn: 0
   , inventory: initInventory
   , level: initLevel
