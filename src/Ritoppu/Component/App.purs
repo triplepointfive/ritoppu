@@ -262,7 +262,7 @@ handleAction = case _ of
   InitGame -> do
     seed <- H.liftEffect randomSeed
     -- H.modify_ (_ { state = LevelUp
-    --     { stage: updateFov $ runGenerator seed (generator { x: 30, y: 30 })
+    --     { stage: updateFov $ runGenerator seed (generator 1 { x: 30, y: 30 })
     --     , dungeonLevel: 1
     --     } })
     mGame <- H.liftEffect loadGame
@@ -360,7 +360,8 @@ downstairs game = case tileAt game.stage game.stage.player.pos of
     H.modify_ (_ { state = DropItem game })
 
     seed <- H.liftEffect randomSeed
-    let newStage = runGenerator seed (generator { x: 30, y: 30 })
+    let nextDungeonLevel = game.dungeonLevel + 1
+        newStage = runGenerator seed (generator nextDungeonLevel { x: 30, y: 30 })
 
     action
       (\g -> withAction g (A.LogMessage A.DownstairsRest))
@@ -371,7 +372,7 @@ downstairs game = case tileAt game.stage game.stage.player.pos of
           , stats = heal (game.stage.player.stats.maxHp / 2) game.stage.player.stats
           }
         }
-      , dungeonLevel: game.dungeonLevel + 1
+      , dungeonLevel: nextDungeonLevel
       }
   _ ->
     action (\g -> withAction g (A.LogMessage A.NoStairs)) game
@@ -407,7 +408,7 @@ mainMenuKeyAct mGame key = case { key, mGame } of
   { key: "n" } -> do
     seed <- H.liftEffect randomSeed
     let game =
-          { stage: updateFov $ runGenerator seed (generator { x: 30, y: 30 })
+          { stage: updateFov $ runGenerator seed (generator 1 { x: 30, y: 30 })
           , dungeonLevel: 1
           }
     H.liftEffect (saveGame game)

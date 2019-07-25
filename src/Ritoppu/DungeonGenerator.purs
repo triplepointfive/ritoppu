@@ -4,27 +4,21 @@ module Ritoppu.DungeonGenerator
 
 import Prelude
 
-import Data.Array (concatMap, head, index, last, nub, singleton, (..), (:))
+import Data.Array (concatMap, find, head, index, last, nub, singleton, (..), (:))
 import Data.Foldable (any, foldl, foldr, length)
 import Data.Map as Map
-import Data.Maybe (Maybe(..), fromMaybe)
+import Data.Maybe (Maybe(..), fromMaybe, maybe)
 import Data.Set as Set
 import Data.Traversable (traverse, for)
 import Data.Tuple (Tuple(..))
-import Ritoppu.Model (AiStrategy(..), Creature, CreatureType(..), Item(..), Point, Rect, Stage, Tile(..), Repository, center, fillRect, initRepository, initStage, intersect, outerRect, passibleThrough)
+import Ritoppu.Model (AiStrategy(..), Creature, CreatureType(..), Item(..), Point, Rect, Repository, Stage, Tile(..), center, fillRect, initRepository, initStage, intersect, outerRect, passibleThrough)
 import Ritoppu.Mutation (addToRepository, setTile)
 import Ritoppu.Random (RandomGenerator, newFromRepository, newInt, newPoint, newRect)
 import Ritoppu.Utils (nTimes)
 
-maxMonstersPerRoom :: Int
-maxMonstersPerRoom = 5
-
-maxItemsPerRoom :: Int
-maxItemsPerRoom = 5
-
-creaturesRepository :: Repository Creature
-creaturesRepository
-  = addToRepository 20 redNaga
+creaturesRepository :: Int -> Repository Creature
+creaturesRepository dungeonLevel
+  = addToRepository (pickInDict [{ level: 7, value: 60 }, { level: 5, value: 30 }, { level: 3, value: 15 }] dungeonLevel) redNaga
   $ initRepository 80 redNagaHatchling
 
   where
@@ -45,25 +39,26 @@ creaturesRepository
     , xp: 100
     }
 
-itemsRepository :: Repository Item
-itemsRepository
-  = addToRepository 70 HealingPotion
-  $ addToRepository 80 FireballScroll
-  $ addToRepository 90 ConfusionScroll
-  $ initRepository 10 LightningScroll
+itemsRepository :: Int -> Repository Item
+itemsRepository dungeonLevel
+  = addToRepository (pickInDict [{ level: 4, value: 25 }] dungeonLevel) LightningScroll
+  $ addToRepository (pickInDict [{ level: 6, value: 25 }] dungeonLevel) FireballScroll
+  $ addToRepository (pickInDict [{ level: 2, value: 10 }] dungeonLevel) ConfusionScroll
+  $ initRepository 35 HealingPotion
 
-generator :: Point -> RandomGenerator Stage
-generator size = do
+generator :: Int -> Point -> RandomGenerator Stage
+generator dungeonLevel size = do
   rooms <- traverse (const (newRect size)) (1..30)
-  addRooms (initStage size) (filterIntersect rooms)
+  addRooms dungeonLevel (initStage size) (filterIntersect rooms)
 
-addRooms :: Stage -> Array Rect -> RandomGenerator Stage
-addRooms stage rooms = do
+addRooms :: Int -> Stage -> Array Rect -> RandomGenerator Stage
+addRooms dungeonLevel stage rooms = do
   -- EXTRA: Validate never has intercalation
   playerPos <- newPoint a.x a.y b.x b.y
   stairsDownPos <- newPoint lastRoom.a.x lastRoom.a.y lastRoom.b.x lastRoom.b.y
 
-  generateCreatures (stageWithFloors playerPos stairsDownPos) >>= generateItems
+  generateCreatures dungeonLevel (length rooms) (stageWithFloors playerPos stairsDownPos)
+    >>= generateItems dungeonLevel (length rooms)
 
   where
 
@@ -79,14 +74,14 @@ addRooms stage rooms = do
   { a, b } = fromMaybe ({ a: { x: 0, y: 0 }, b: stage.size }) (head rooms)
   lastRoom = fromMaybe ({ a: { x: 0, y: 0 }, b: stage.size }) (last rooms)
 
-generateCreatures :: Stage -> RandomGenerator Stage
-generateCreatures stage = do
-  monstersCount <- newInt 0 (maxMonstersPerRoom * 3)
+generateCreatures :: Int -> Int -> Stage -> RandomGenerator Stage
+generateCreatures dungeonLevel roomsCount stage = do
+  monstersCount <- newInt 0 (maxMonstersPerRoom * roomsCount)
 
   poses <- nTimes monstersCount (newInt 0 (length availablePoses))
 
   creaturesList <- for (nub poses) $ \x -> do
-    creature <- newFromRepository creaturesRepository
+    creature <- newFromRepository (creaturesRepository dungeonLevel)
     pure $ Tuple (fromMaybe { x: 0, y: 0 } (index availablePoses x)) creature
 
   pure stage { creatures = Map.fromFoldable creaturesList }
@@ -100,16 +95,22 @@ generateCreatures stage = do
     $ Map.keys
     $ Map.filter passibleThrough stage.tiles
 
+  maxMonstersPerRoom :: Int
+  maxMonstersPerRoom =
+    pickInDict
+      [{ level: 6, value: 5 }, { level: 4, value: 3 }, { level: 1, value: 2 }]
+      dungeonLevel
+
 -- TODO: Remove duplicity
 -- EXTRA: Pass real # of rooms
-generateItems :: Stage -> RandomGenerator Stage
-generateItems stage = do
-  monstersCount <- newInt 0 (maxItemsPerRoom * 3)
+generateItems :: Int -> Int -> Stage -> RandomGenerator Stage
+generateItems dungeonLevel roomsCount stage = do
+  monstersCount <- newInt 0 (maxItemsPerRoom * roomsCount)
 
   poses <- nTimes monstersCount (newInt 0 (length availablePoses))
 
   itemsList <- for (nub poses) $ \x -> do
-    item <- singleton <$> newFromRepository itemsRepository
+    item <- singleton <$> newFromRepository (itemsRepository dungeonLevel)
     pure $ Tuple (fromMaybe { x: 0, y: 0 } (index availablePoses x)) item
 
   pure stage { items = Map.fromFoldable itemsList }
@@ -121,6 +122,12 @@ generateItems stage = do
     = Set.toUnfoldable
     $ Map.keys
     $ Map.filter passibleThrough stage.tiles
+
+  maxItemsPerRoom :: Int
+  maxItemsPerRoom =
+    pickInDict
+      [{ level: 4, value: 2 }, { level: 1, value: 1 }]
+      dungeonLevel
 
 builtCorridors :: Array Point -> Array Point
 builtCorridors = _.tiles <<< foldl connect { last: Nothing, tiles: [] }
@@ -156,3 +163,8 @@ buildHLine x1 x2 y = map (\x -> { x, y }) (x1..x2)
 
 buildVLine :: Int -> Int -> Int -> Array Point
 buildVLine y1 y2 x = map (\y -> { x, y }) (y1..y2)
+
+pickInDict :: Array { level :: Int, value :: Int } -> Int -> Int
+pickInDict list dungeonLevel
+  = maybe 0 (_.value)
+  $ find (\{ level } -> dungeonLevel >= level) list
