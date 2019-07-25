@@ -11,9 +11,9 @@ import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Set as Set
 import Data.Traversable (traverse, for)
 import Data.Tuple (Tuple(..))
-import Ritoppu.Model (AiStrategy(..), CreatureRepository, CreatureType(..), Item(..), Point, Rect, Stage, Tile(..), center, fillRect, initStage, intersect, outerRect, passibleThrough)
-import Ritoppu.Mutation (setTile)
-import Ritoppu.Random (RandomGenerator, newCreature, newInt, newItem, newPoint, newRect)
+import Ritoppu.Model (AiStrategy(..), Creature, CreatureType(..), Item(..), Point, Rect, Stage, Tile(..), Repository, center, fillRect, initRepository, initStage, intersect, outerRect, passibleThrough)
+import Ritoppu.Mutation (addToRepository, setTile)
+import Ritoppu.Random (RandomGenerator, newFromRepository, newInt, newPoint, newRect)
 import Ritoppu.Utils (nTimes)
 
 maxMonstersPerRoom :: Int
@@ -22,30 +22,35 @@ maxMonstersPerRoom = 5
 maxItemsPerRoom :: Int
 maxItemsPerRoom = 5
 
-creaturesRepository :: CreatureRepository
-creaturesRepository v
-  | v < 80 =
-      { type: RedNagaHatchling
-      , stats: { maxHp: 10, hp: 10, defense: 0, power: 3 }
-      , turn: 0
-      , aiStrategy: BasicAI
-      , xp: 35
-      }
-  | otherwise =
-      { type: RedNaga
-      , stats: { maxHp: 16, hp: 16, defense: 1, power: 4 }
-      , turn: 0
-      , aiStrategy: BasicAI
-      , xp: 100
-      }
+creaturesRepository :: Repository Creature
+creaturesRepository
+  = addToRepository 20 redNaga
+  $ initRepository 80 redNagaHatchling
 
--- TODO: Reuse CreatureRepository
-itemsRepository :: Int -> Item
-itemsRepository v
-  | v < 70 = HealingPotion
-  | v < 80 = FireballScroll
-  | v < 90 = ConfusionScroll
-  | otherwise = LightningScroll
+  where
+
+  redNagaHatchling =
+    { type: RedNagaHatchling
+    , stats: { maxHp: 10, hp: 10, defense: 0, power: 3 }
+    , turn: 0
+    , aiStrategy: BasicAI
+    , xp: 35
+    }
+
+  redNaga =
+    { type: RedNaga
+    , stats: { maxHp: 16, hp: 16, defense: 1, power: 4 }
+    , turn: 0
+    , aiStrategy: BasicAI
+    , xp: 100
+    }
+
+itemsRepository :: Repository Item
+itemsRepository
+  = addToRepository 70 HealingPotion
+  $ addToRepository 80 FireballScroll
+  $ addToRepository 90 ConfusionScroll
+  $ initRepository 10 LightningScroll
 
 generator :: Point -> RandomGenerator Stage
 generator size = do
@@ -81,7 +86,7 @@ generateCreatures stage = do
   poses <- nTimes monstersCount (newInt 0 (length availablePoses))
 
   creaturesList <- for (nub poses) $ \x -> do
-    creature <- newCreature creaturesRepository
+    creature <- newFromRepository creaturesRepository
     pure $ Tuple (fromMaybe { x: 0, y: 0 } (index availablePoses x)) creature
 
   pure stage { creatures = Map.fromFoldable creaturesList }
@@ -104,7 +109,7 @@ generateItems stage = do
   poses <- nTimes monstersCount (newInt 0 (length availablePoses))
 
   itemsList <- for (nub poses) $ \x -> do
-    item <- singleton <$> newItem itemsRepository
+    item <- singleton <$> newFromRepository itemsRepository
     pure $ Tuple (fromMaybe { x: 0, y: 0 } (index availablePoses x)) item
 
   pure stage { items = Map.fromFoldable itemsList }
