@@ -10,7 +10,7 @@ import Data.Maybe (Maybe(..))
 import Data.Newtype (wrap)
 import Halogen.HTML as HH
 import Halogen.HTML.Properties as HP
-import Ritoppu.Model (CreatureType(..), Item(..), Point, Stage, Tile(..), creatureAt, creatureName, isSeenTile, isVisibleTile, itemAt, playerAt, tileAt)
+import Ritoppu.Model (CreatureType(..), MainHandItem(..), OffHandItem(..), Item(..), Point, Stage, Tile(..), creatureAt, creatureName, isSeenTile, isVisibleTile, itemAt, playerAt, tileAt)
 
 type TileProps i = Array (HP.IProp HTMLdiv i)
 
@@ -72,3 +72,6 @@ itemClass = case _ of
   LightningScroll -> "item -lightning_scroll"
   FireballScroll -> "item -fireball_scroll"
   ConfusionScroll -> "item -confusion_scroll"
+  MainHandItem Dagger -> "item -dagger"
+  MainHandItem Sword -> "item -sword"
+  OffHandItem Shield -> "item -shield"

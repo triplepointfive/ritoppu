@@ -1,5 +1,6 @@
 module Ritoppu.Model
   ( module Ritoppu.Model.Direction
+  , module Ritoppu.Model.Equipment
   , module Ritoppu.Model.FovMask
   , module Ritoppu.Model.Item
   , module Ritoppu.Model.Level
@@ -21,6 +22,7 @@ import Ritoppu.Model.Creature (Creature, AiStrategy(..), creatureName)
 import Ritoppu.Model.CreatureRepository (CreatureRepository)
 import Ritoppu.Model.CreatureType (CreatureType(..))
 import Ritoppu.Model.Direction (Direction(..), directionDelta)
+import Ritoppu.Model.Equipment (Equipment, MainHandItem(..), OffHandItem(..))
 import Ritoppu.Model.FovMask (FovMask, isVisibleTile, isSeenTile)
 import Ritoppu.Model.Game (Game)
 import Ritoppu.Model.Inventory (Inventory, inventoryPositions)

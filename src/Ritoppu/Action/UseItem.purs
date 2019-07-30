@@ -22,6 +22,8 @@ useItem = case _ of
   FireballScroll -> target castFireball "Left-click a target tile for the fireball" <<< inactive
   ConfusionScroll -> target castConfusion "Left-click an enemy to confuse it" <<< inactive
   Corpse _ -> flip withAction (LogMessage DoNotKnowHowToUse)
+  MainHandItem _ -> flip withAction (LogMessage DoNotKnowHowToUse)
+  OffHandItem _ -> flip withAction (LogMessage DoNotKnowHowToUse)
 
 useHealingPotion :: Game -> ActionResult Game
 useHealingPotion game = case unit of

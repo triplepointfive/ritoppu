@@ -7,6 +7,7 @@ import Ritoppu.Model.Inventory (Inventory, initInventory)
 import Ritoppu.Model.Level (Level, initLevel)
 import Ritoppu.Model.Point (Point)
 import Ritoppu.Model.Stats (Stats)
+import Ritoppu.Model.Equipment (Equipment, initEquipment)
 
 type Player =
   { pos :: Point
@@ -14,6 +15,7 @@ type Player =
   , turn :: Int
   , inventory :: Inventory
   , level :: Level
+  , equipment :: Equipment
   }
 
 initPlayer :: Player
@@ -23,4 +25,5 @@ initPlayer =
   , turn: 0
   , inventory: initInventory
   , level: initLevel
+  , equipment: initEquipment
   }

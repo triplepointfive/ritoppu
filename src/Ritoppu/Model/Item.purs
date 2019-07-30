@@ -12,6 +12,7 @@ import Data.Argonaut.Encode (class EncodeJson, (:=), (~>))
 import Data.Either (Either(..))
 import Ritoppu.Model.Creature (Creature)
 import Ritoppu.Model.CreatureType (CreatureType)
+import Ritoppu.Model.Equipment (MainHandItem, OffHandItem)
 
 data Item
   = Corpse CreatureType
@@ -19,6 +20,8 @@ data Item
   | LightningScroll
   | FireballScroll
   | ConfusionScroll
+  | MainHandItem MainHandItem
+  | OffHandItem OffHandItem
 
 newCorpse :: Creature -> Item
 newCorpse creature = Corpse creature.type
@@ -30,6 +33,8 @@ itemName = case _ of
   LightningScroll -> "Lightning Scroll"
   FireballScroll -> "Fireball Scroll"
   ConfusionScroll -> "Confusion Scroll"
+  MainHandItem mainHandItem -> show mainHandItem
+  OffHandItem offHandItem -> show offHandItem
 
 derive instance eqItem :: Eq Item
 derive instance ordItem :: Ord Item
@@ -42,6 +47,12 @@ instance decodeJsonItem :: DecodeJson Item where
       "Corpse" -> do
         creatureType <- x .: "CreatureType"
         pure (Corpse creatureType)
+      "MainHandItem" -> do
+        mainHandItem <- x .: "MainHandItem"
+        pure (MainHandItem mainHandItem)
+      "OffHandItem" -> do
+        offHandItem <- x .: "OffHandItem"
+        pure (OffHandItem offHandItem)
       "HealingPotion" -> pure HealingPotion
       "LightningScroll" -> pure LightningScroll
       "FireballScroll" -> pure FireballScroll
@@ -65,4 +76,12 @@ instance encodeJsonItem :: EncodeJson Item where
         ~> jsonEmptyObject
     ConfusionScroll ->
       "item" := "ConfusionScroll"
+        ~> jsonEmptyObject
+    MainHandItem mainHandItem ->
+      "item" := "MainHandItem"
+        ~> "MainHandItem" := mainHandItem
+        ~> jsonEmptyObject
+    OffHandItem offHandItem ->
+      "item" := "OffHandItem"
+        ~> "OffHandItem" := offHandItem
         ~> jsonEmptyObject
