@@ -41,6 +41,8 @@ data Message
   | CastConfusion Creature
   | NoStairs
   | DownstairsRest
+  | TakeOn String
+  | TookOff String
 
 data Action
   = LogMessage Message

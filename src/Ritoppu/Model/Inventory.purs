@@ -13,6 +13,7 @@ import Data.Maybe (fromMaybe)
 import Data.String.CodeUnits (singleton)
 import Data.Tuple (Tuple(..))
 import Ritoppu.Model.Item (Item(..))
+import Ritoppu.Model.Equipment (MainHandItem(..), OffHandItem(..))
 
 type Inventory = Map.Map Item Int
 
@@ -22,6 +23,9 @@ initInventory = Map.fromFoldable
   , Tuple LightningScroll 5
   , Tuple FireballScroll 2
   , Tuple ConfusionScroll 3
+  , Tuple (MainHandItem Dagger) 1
+  , Tuple (MainHandItem Sword) 1
+  , Tuple (OffHandItem Shield) 1
   ]
 
 -- EXTRA: Limit per page

@@ -88,6 +88,10 @@ buildMessage msg = div "log-message" $ case msg of
     -> [ debug "There are no stairs here." ]
   DownstairsRest
     -> [ focus "You take a moment to rest, and recover your strength." ]
+  TakeOn item
+    -> [ info "You equipped the ", focus item ]
+  TookOff item
+    -> [ info "You dequipped the ", focus item ]
 
 debug :: forall p i. String -> HH.HTML p i
 debug = withStyle "msg -debug"

@@ -1,4 +1,4 @@
-$cell-size: 32px
+$cell-size: 24px
 $sprite-tile-size: 32px
 $sprite-x: 30
 $sprite-y: 55
@@ -55,3 +55,9 @@ $sprite-ratio: $cell-size / $sprite-tile-size * $sprite-tile-size
     @include tile(23, 34)
   > .item.-confusion_scroll
     @include tile(24, 34)
+  > .item.-dagger
+    @include tile(2, 24)
+  > .item.-sword
+    @include tile(9, 24)
+  > .item.-shield
+    @include tile(10, 28)

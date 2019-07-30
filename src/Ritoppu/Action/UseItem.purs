@@ -9,11 +9,11 @@ import Data.Foldable (minimumBy)
 import Data.Map as Map
 import Data.Maybe (Maybe(..))
 import Data.Tuple (Tuple(..))
-import Ritoppu.Action (Action(..), ActionResult, Message(..), addAction, die, inactive, target, withAction)
+import Ritoppu.Action (Action(..), ActionResult, Message(..), addAction, addActions, die, inactive, target, withAction)
 import Ritoppu.Action.CastTargeting (castFireball, castConfusion)
 import Ritoppu.Action.CreatureAct (creatureAct)
-import Ritoppu.Model (Creature, Game, Item(..), Point, Stage, doubleDistanceBetween, isFullHealth, newCorpse)
-import Ritoppu.Mutation (addItem, gainXp, heal, hitPlayer, removeCreature, removeItemFromInventory, takeDamage, updateCreature)
+import Ritoppu.Model (Creature, Game, MainHandItem(..), Item(..), OffHandItem(..), Point, Stage, doubleDistanceBetween, isFullHealth, newCorpse)
+import Ritoppu.Mutation (addItem, addItemToInventory, gainXp, heal, hitPlayer, removeCreature, removeItemFromInventory, takeDamage, updateCreature)
 
 useItem :: Item -> Game -> ActionResult Game
 useItem = case _ of
@@ -22,8 +22,97 @@ useItem = case _ of
   FireballScroll -> target castFireball "Left-click a target tile for the fireball" <<< inactive
   ConfusionScroll -> target castConfusion "Left-click an enemy to confuse it" <<< inactive
   Corpse _ -> flip withAction (LogMessage DoNotKnowHowToUse)
-  MainHandItem _ -> flip withAction (LogMessage DoNotKnowHowToUse)
-  OffHandItem _ -> flip withAction (LogMessage DoNotKnowHowToUse)
+  MainHandItem mainHandItem -> useMainHandItem mainHandItem
+  OffHandItem offHandItem -> useOffHandItem offHandItem
+
+useMainHandItem :: MainHandItem -> Game -> ActionResult Game
+useMainHandItem item game = case game.stage.player.equipment.mainHand of
+  Nothing ->
+    addAction (LogMessage (TakeOn (show item)))
+    $ creatureAct
+    $ removeItem (MainHandItem item)
+    $ playerTurn
+      game
+      { stage
+        { player {
+            stats {
+              power = game.stage.player.stats.power + (powerDelta item)
+            },
+            equipment {
+              mainHand = Just item
+            }
+          }
+        }
+      }
+  Just oldItem ->
+    addActions [LogMessage (TakeOn (show item)), LogMessage (TookOff (show oldItem))]
+    $ creatureAct
+    $ addItem' (MainHandItem oldItem)
+    $ removeItem (MainHandItem item)
+    $ playerTurn
+      game
+      { stage
+        { player {
+            stats {
+              power = game.stage.player.stats.power - (powerDelta oldItem) + (powerDelta item)
+            },
+            equipment {
+              mainHand = Just item
+            }
+          }
+        }
+      }
+
+  where
+
+  powerDelta :: MainHandItem -> Int
+  powerDelta = case _ of
+    Dagger -> 2
+    Sword -> 3
+
+useOffHandItem :: OffHandItem -> Game -> ActionResult Game
+useOffHandItem item game = case game.stage.player.equipment.offHand of
+  Nothing ->
+    addAction (LogMessage (TakeOn (show item)))
+    $ creatureAct
+    $ removeItem (OffHandItem item)
+    $ playerTurn
+      game
+      { stage
+        { player {
+            stats {
+              defense = game.stage.player.stats.defense + (defenseDelta item)
+            },
+            equipment {
+              offHand = Just item
+            }
+          }
+        }
+      }
+  Just oldItem ->
+    addActions [LogMessage (TakeOn (show item)), LogMessage (TookOff (show oldItem))]
+    $ creatureAct
+    $ addItem' (OffHandItem oldItem)
+    $ removeItem (OffHandItem item)
+    $ playerTurn
+      game
+      { stage
+        { player {
+            stats {
+              defense = game.stage.player.stats.defense - (defenseDelta oldItem) + (defenseDelta item)
+            },
+            equipment {
+              offHand = Just item
+            }
+          }
+        }
+      }
+
+  where
+
+  defenseDelta :: OffHandItem -> Int
+  defenseDelta = case _ of
+    Shield -> 1
 
 useHealingPotion :: Game -> ActionResult Game
 useHealingPotion game = case unit of
@@ -45,6 +134,11 @@ addExperience xp stage = stage { player = gainXp xp stage.player }
 removeItem :: Item -> Game -> Game
 removeItem item game =
   game { stage { player { inventory = removeItemFromInventory item game.stage.player.inventory } } }
+
+-- TODO: Remove duplicity
+addItem' :: Item -> Game -> Game
+addItem' item game =
+  game { stage { player { inventory = addItemToInventory item game.stage.player.inventory } } }
 
 -- TODO: Better messages
 useLightningScroll :: Game -> ActionResult Game

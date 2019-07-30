@@ -13,7 +13,7 @@ import Data.Array (concatMap, take, (:))
 import Data.Either (Either(..))
 import Data.Foldable (foldM)
 import Data.Map as Map
-import Data.Maybe (Maybe(..), isJust)
+import Data.Maybe (Maybe(..), isJust, maybe)
 import Data.Tuple (Tuple(..))
 import Effect (Effect)
 import Effect.Aff (Aff)
@@ -33,7 +33,7 @@ import Ritoppu.Action.UseItem (useItem)
 import Ritoppu.Display (build)
 import Ritoppu.DisplayLog (loggerBlock)
 import Ritoppu.DungeonGenerator (generator)
-import Ritoppu.Model (Direction(..), Game, Item, Point, Tile(..), experienceToNextLevel, inventoryPositions, itemName, tileAt)
+import Ritoppu.Model (Direction(..), Equipment, Game, Item, Point, Tile(..), experienceToNextLevel, inventoryPositions, itemName, tileAt)
 import Ritoppu.Mutation (heal, updateFov)
 import Ritoppu.Random (runGenerator, randomSeed)
 import Web.HTML (window)
@@ -185,6 +185,10 @@ sidebar' game =
     , div "stats"
         [ HH.dl [] inventoryItems'
         ]
+    , HH.text "Equipment:"
+    , div "stats"
+        [ HH.dl [] (renderEquipment game.stage.player.equipment)
+        ]
     , HH.hr_
     , div "help-section"
         [ div "" [ HH.text "Arrows or vim-keys to move" ]
@@ -235,7 +239,10 @@ sidebar game =
     , div "stats"
         [ HH.dl [] (inventoryItems game)
         ]
-
+    , HH.text "Equipment:"
+    , div "stats"
+        [ HH.dl [] (renderEquipment game.stage.player.equipment)
+        ]
     , HH.hr_
     , div "help-section"
         [ div "" [ HH.text "Arrows or vim-keys to move" ]
@@ -246,6 +253,14 @@ sidebar game =
         , div "" [ HH.text "Enter to go downstairs" ]
         ]
     ]
+
+renderEquipment :: forall p i. Equipment -> Array (HH.HTML p i)
+renderEquipment { mainHand, offHand } =
+  [ HH.dd [] [ HH.text "Main hand" ]
+  , HH.dt [] [ HH.text (maybe "-" show mainHand) ]
+  , HH.dd [] [ HH.text "Off hand" ]
+  , HH.dt [] [ HH.text (maybe "-" show offHand) ]
+  ]
 
 inventoryItems :: forall p i. Game -> Array (HH.HTML p i)
 inventoryItems game =

@@ -11,7 +11,7 @@ import Data.Maybe (Maybe(..), fromMaybe, maybe)
 import Data.Set as Set
 import Data.Traversable (traverse, for)
 import Data.Tuple (Tuple(..))
-import Ritoppu.Model (AiStrategy(..), Creature, CreatureType(..), Item(..), Point, Rect, Repository, Stage, Tile(..), center, fillRect, initRepository, initStage, intersect, outerRect, passibleThrough)
+import Ritoppu.Model (AiStrategy(..), Creature, CreatureType(..), OffHandItem(..), MainHandItem(..), Item(..), Point, Rect, Repository, Stage, Tile(..), center, fillRect, initRepository, initStage, intersect, outerRect, passibleThrough)
 import Ritoppu.Mutation (addToRepository, setTile)
 import Ritoppu.Random (RandomGenerator, newFromRepository, newInt, newPoint, newRect)
 import Ritoppu.Utils (nTimes)
@@ -44,6 +44,8 @@ itemsRepository dungeonLevel
   = addToRepository (pickInDict [{ level: 4, value: 25 }] dungeonLevel) LightningScroll
   $ addToRepository (pickInDict [{ level: 6, value: 25 }] dungeonLevel) FireballScroll
   $ addToRepository (pickInDict [{ level: 2, value: 10 }] dungeonLevel) ConfusionScroll
+  $ addToRepository (pickInDict [{ level: 4, value: 5 }] dungeonLevel) (MainHandItem Sword)
+  $ addToRepository (pickInDict [{ level: 8, value: 15 }] dungeonLevel) (OffHandItem Shield)
   $ initRepository 35 HealingPotion
 
 generator :: Int -> Point -> RandomGenerator Stage
